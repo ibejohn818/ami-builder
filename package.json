@@ -1,6 +1,6 @@
 {
   "name": "ami-builder",
-  "version": "0.0.1.beta.0",
+  "version": "0.0.1-beta.0",
   "description": "Define AWS AMI in typescript and provision with packer. For use with AWS CDK.",
   "main": "dist/",
   "files": [
@@ -11,9 +11,10 @@
     "aws-sdk": "^2.647.0",
     "chalk": "^3.0.0",
     "commander": "^5.0.0",
+    "inquirer": "^7.1.0",
     "js-yaml": "^3.13.1",
     "rimraf": "^3.0.2",
-    "terminal-kit": "^1.35.2",
+    "terminal-kit": "^1.35.2"
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
@@ -47,7 +48,7 @@
     "ami-builder": "./dist/cli.js"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/ibejohn818/ami-builder.git"
+    "type": "git",
+    "url": "https://github.com/ibejohn818/ami-builder.git"
   }
 }
