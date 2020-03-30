@@ -7,6 +7,8 @@ import * as child from 'child_process'
 import * as path from 'path'
 import {PackerBuilder} from './packer/builder'
 import * as term from 'terminal-kit'
+import * as inquirer from 'inquirer'
+import { listenerCount } from 'cluster'
 
 
 
@@ -26,20 +28,42 @@ program.command("list <name>")
         })
 
 program.command('test')
-    .action(async () => {
-       const ls = await child.spawn( 'packer', [] );
+    .action(() => {
+    //    const ls = await child.spawn( 'packer', [] );
 
-        ls.stdout.on( 'data', data => {
-            console.log( `stdout: ${data}` );
-        } );
+    //     ls.stdout.on( 'data', data => {
+    //         console.log( `stdout: ${data}` );
+    //     } );
 
-        ls.stderr.on( 'data', data => {
-            console.log( `stderr: ${data}` );
-        } );
+    //     ls.stderr.on( 'data', data => {
+    //         console.log( `stderr: ${data}` );
+    //     } );
 
-        ls.on( 'close', code => {
-            console.log( `child process exited with code ${code}` );
-        } ); 
+    //     ls.on( 'close', code => {
+    //         console.log( `child process exited with code ${code}` );
+    //     } ); 
+        try {
+            
+            let prompt = inquirer.createPromptModule();
+            let questions = [
+                {
+                    type: 'checkbox',
+                    name: 'test',
+                    choices: PackerBuilder.inquirerlist(),
+                    message: 'testing message'
+
+                }
+            ]
+            prompt(questions).then(
+                (r) => {
+                    console.log(r)
+                }
+            );
+        } catch (error) {
+            
+            console.log("ERR", error)
+        }
+
     })
 
 program.command('run')
@@ -60,8 +84,9 @@ program.command('run')
             //     // Detect CTRL-C and exit 'manually'
             //     if ( key === 'CTRL_C' ) { process.exit() ; }
             // } ) ;
-            await PackerBuilder.bootstrap_builds()
+            await PackerBuilder.bootstrapBuilds()
 
+  
         }).catch((err) => {
             console.log("ERR: ", err)
         })

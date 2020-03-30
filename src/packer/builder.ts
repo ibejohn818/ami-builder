@@ -276,8 +276,11 @@ export class PackerBuilder {
 
     public static add(ami: PackerAmi): PackerAmi {
 
-        if (PackerBuilder.amis.indexOf(ami) > -1) {
-            throw Error("Name Already added to builder")
+        for (var i in PackerBuilder.amis) {
+            let name = PackerBuilder.amis[i].name
+            if (name == ami.name) {
+                throw Error(`${ami.name} AMI name already in-use `)
+            }
         }
 
         PackerBuilder.amis.push(ami)
@@ -295,7 +298,7 @@ export class PackerBuilder {
      * Will generate the packer build file and (if applicable) the ansible playbook
      * for each AMI+REGION combination
      */
-    public static async bootstrap_builds() {
+    public static async bootstrapBuilds() {
 
         let builds: PackerAmiBuild[] = []
 
@@ -325,5 +328,14 @@ export class PackerBuilder {
         // res.on("disconnect", () => {
         //     res.kill()
         // })
+    }
+
+    public static inquirerlist(): any[]  {
+        let res = []
+        for (var i in PackerBuilder.amis) {
+            let a = PackerBuilder.amis[i]
+            res.push({name: a.name})
+        }
+        return res
     }
 }

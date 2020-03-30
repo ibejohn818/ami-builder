@@ -1,6 +1,6 @@
 {
   "name": "ami-builder",
-  "version": "0.0.1",
+  "version": "0.0.1-beta.0",
   "description": "Define AWS AMI in typescript and provision with packer. For use with AWS CDK.",
   "main": "dist/",
   "files": [
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/chai": "^4.2.11",
+    "@types/inquirer": "^6.5.0",
     "@types/js-yaml": "^3.12.3",
     "@types/mocha": "^7.0.2",
     "@types/node": "^12.12.31",

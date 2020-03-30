@@ -131,7 +131,7 @@ export class AnsibleProvisioner extends Provisioner {
             become: true,
             become_method: 'sudo',
             hosts: 'all',
-            name: 'test',
+            name: this.name,
             roles: []
         }
         // sort roles
@@ -151,7 +151,7 @@ export class AnsibleProvisioner extends Provisioner {
 
         }
 
-        let p = path.join(aPath, "playbook.yaml")
+        let p = path.join(aPath, `playbook-${region}.yaml`)
 
         fs.writeFileSync(p, yaml.dump([pb]))
 
