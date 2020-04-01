@@ -9,7 +9,9 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "aws-sdk": "^2.647.0",
+    "blessed": "^0.1.81",
     "chalk": "^3.0.0",
+    "clui": "^0.3.6",
     "commander": "^5.0.0",
     "inquirer": "^7.1.0",
     "js-yaml": "^3.13.1",
@@ -18,7 +20,9 @@
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
+    "@types/blessed": "^0.1.17",
     "@types/chai": "^4.2.11",
+    "@types/clui": "^0.3.0",
     "@types/inquirer": "^6.5.0",
     "@types/js-yaml": "^3.12.3",
     "@types/mocha": "^7.0.2",

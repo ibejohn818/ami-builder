@@ -51,7 +51,7 @@ const webAmi = (name: string) => {
     ami.addProvisioner(1, ansible)
 
     // add to our builder queue
-    ami_builder.PackerBuilder.add(ami)
+    ami_builder.AmiBuildQueue.add(ami)
 
     // return the ami
     return ami
@@ -73,7 +73,7 @@ stagingYumUpdate.add([
 stagingWeb.prependProvisioner(stagingYumUpdate)
 
 // add the regions we want to build in
-ami_builder.PackerBuilder.setRegions(
+ami_builder.AmiBuildQueue.setRegions(
     ami_builder.Regions.USWEST2,
     ami_builder.Regions.USEAST1,
 )

@@ -63,4 +63,170 @@ exports.defaultAwsLinux2Ami = async (region) => {
     let res = await AmiFilter.filterImages(region, filter);
     return res[0].ImageId;
 };
+exports.defaultAwsLinuxAmi = async (region) => {
+    let filter = [
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'name',
+            Values: ['amzn-ami*x86_64-gp2']
+        },
+        {
+            Name: 'description',
+            Values: ["*Linux*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    return res[0].ImageId;
+};
+exports.defaultUbuntu18 = async (region) => {
+    let filter = [
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["Canonical, Ubuntu, 18.04 LTS*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    return res[0].ImageId;
+};
+exports.defaultUbuntu16 = async (region) => {
+    let filter = [
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["Canonical, Ubuntu, 16.04 LTS*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    // filter out UNSUPPORTED
+    let img = [];
+    let reg = new RegExp(/unsupported/i);
+    res.forEach((v, k) => {
+        if (v.Description && !v.Description.match(reg)) {
+            img.push(v);
+        }
+    });
+    return img[0].ImageId;
+};
+exports.defaultUbuntu14 = async (region) => {
+    let filter = [
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["*Ubuntu*14*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    return res[0].ImageId;
+};
+const VERSION = require('../../package.json').version;
+const BUILDER = require('../../package.json').name;
 //# sourceMappingURL=ami.js.map

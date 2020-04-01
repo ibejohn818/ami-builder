@@ -27,8 +27,11 @@ class PackerAmi {
             builders: [],
             provisioners: []
         };
+        this.validateName(aName);
         this._name = aName;
         this.sshUser = aSshUser;
+    }
+    validateName(aName) {
     }
     get name() {
         return this._name.replace(" ", "");
@@ -101,6 +104,7 @@ class PackerAmi {
             name: this.name,
             packerFile: file,
             region: region,
+            path: this.buildPath
         };
     }
     /**
@@ -168,7 +172,7 @@ class AmazonLinuxAmi extends PackerAmi {
         super(aName, "ec2-user");
     }
     async getAmiId(region) {
-        return await ami_module.defaultAwsLinux2Ami(region);
+        return await ami_module.defaultAwsLinuxAmi(region);
     }
 }
 exports.AmazonLinuxAmi = AmazonLinuxAmi;
@@ -177,7 +181,7 @@ class Ubuntu18Ami extends PackerAmi {
         super(aName, "ubuntu");
     }
     async getAmiId(region) {
-        return await ami_module.defaultAwsLinux2Ami(region);
+        return await ami_module.defaultUbuntu18(region);
     }
 }
 exports.Ubuntu18Ami = Ubuntu18Ami;
@@ -186,10 +190,19 @@ class Ubuntu16Ami extends PackerAmi {
         super(aName, "ubuntu");
     }
     async getAmiId(region) {
-        return await ami_module.defaultAwsLinux2Ami(region);
+        return await ami_module.defaultUbuntu16(region);
     }
 }
 exports.Ubuntu16Ami = Ubuntu16Ami;
+class Ubuntu14Ami extends PackerAmi {
+    constructor(aName) {
+        super(aName, "ubuntu");
+    }
+    async getAmiId(region) {
+        return await ami_module.defaultUbuntu16(region);
+    }
+}
+exports.Ubuntu14Ami = Ubuntu14Ami;
 class PackerBuilder {
     static add(ami) {
         for (var i in PackerBuilder.amis) {
@@ -219,6 +232,7 @@ class PackerBuilder {
             }
         }
         console.log("BUID:", builds);
+        return builds;
         // let cmd = ["-machine-readable"]
         // let packerFile = `${this.buildPath}/packer.json`
         // console.log("FILE: ", packerFile)
@@ -243,4 +257,41 @@ exports.PackerBuilder = PackerBuilder;
 PackerBuilder.amis = [];
 PackerBuilder.images = {};
 PackerBuilder.regions = [];
+class AmiBuildQueue {
+    /**
+     *
+     * @param ami The ami to add ot the queue
+     */
+    static add(ami) {
+        for (var i in PackerBuilder.amis) {
+            let name = PackerBuilder.amis[i].name;
+            if (name == ami.name) {
+                throw Error(`${ami.name} AMI name already in the build queue`);
+            }
+        }
+        AmiBuildQueue.amis.push(ami);
+        return ami;
+    }
+    static setRegions(...regions) {
+        AmiBuildQueue.regions = regions;
+    }
+    static bootstrap() {
+        let builds = [];
+        for (var i in AmiBuildQueue.amis) {
+            let ami = AmiBuildQueue.amis[i];
+            for (var ii in AmiBuildQueue.regions) {
+                let region = AmiBuildQueue.regions[ii];
+                builds.push({
+                    packerAmi: ami,
+                    name: ami.name,
+                    region: region
+                });
+            }
+        }
+        return builds;
+    }
+}
+exports.AmiBuildQueue = AmiBuildQueue;
+AmiBuildQueue.amis = [];
+AmiBuildQueue.regions = [];
 //# sourceMappingURL=builder.js.map

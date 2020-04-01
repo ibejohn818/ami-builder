@@ -33,12 +33,6 @@ export interface Tag {
     key: string,
     value: string
 }
-export interface PackerAmiBuild {
-    name: string,
-    region: Regions
-    packerFile: string
-    tags?: Tag[]
-}
 
 export abstract class PackerAmi {
 
@@ -52,8 +46,12 @@ export abstract class PackerAmi {
     }
 
     constructor(aName: string, aSshUser: string) {
+        this.validateName(aName)
         this._name = aName
         this.sshUser = aSshUser
+    }
+
+    private validateName(aName: string) {
     }
 
     public get name(): string {
@@ -155,6 +153,7 @@ export abstract class PackerAmi {
             name: this.name,
             packerFile: file,
             region: region,
+            path: this.buildPath
         }
     }
 
@@ -239,7 +238,7 @@ export class AmazonLinuxAmi extends PackerAmi {
         super(aName, "ec2-user")
     }
     async getAmiId(region: Regions): Promise<string> {
-        return await ami_module.defaultAwsLinux2Ami(region)
+        return await ami_module.defaultAwsLinuxAmi(region)
     } 
 
 }
@@ -250,7 +249,7 @@ export class Ubuntu18Ami extends PackerAmi {
         super(aName, "ubuntu")
     }
     async getAmiId(region: Regions): Promise<string> {
-        return await ami_module.defaultAwsLinux2Ami(region)
+        return await ami_module.defaultUbuntu18(region)
     }    
 
 
@@ -262,11 +261,21 @@ export class Ubuntu16Ami extends PackerAmi {
         super(aName, "ubuntu")
     }
     async getAmiId(region: Regions): Promise<string> {
-        return await ami_module.defaultAwsLinux2Ami(region)
+        return await ami_module.defaultUbuntu16(region)
     }
 
 }
 
+export class Ubuntu14Ami extends PackerAmi {
+
+    constructor(aName: string) {
+        super(aName, "ubuntu")
+    }
+    async getAmiId(region: Regions): Promise<string> {
+        return await ami_module.defaultUbuntu16(region)
+    }
+
+}
 
 export class PackerBuilder {
 
@@ -298,7 +307,7 @@ export class PackerBuilder {
      * Will generate the packer build file and (if applicable) the ansible playbook
      * for each AMI+REGION combination
      */
-    public static async bootstrapBuilds() {
+    public static async bootstrapBuilds(): Promise<PackerAmiBuild[]> {
 
         let builds: PackerAmiBuild[] = []
 
@@ -315,6 +324,7 @@ export class PackerBuilder {
             }
         }
         console.log("BUID:", builds)
+        return builds
         // let cmd = ["-machine-readable"]
         // let packerFile = `${this.buildPath}/packer.json`
         // console.log("FILE: ", packerFile)
@@ -338,4 +348,66 @@ export class PackerBuilder {
         }
         return res
     }
+}
+
+export interface PackerAmiBuild {
+    name: string,
+    region: Regions
+    packerFile: string
+    path: string
+    tags?: Tag[]
+}
+
+export interface AmiQueuedBuild {
+    packerAmi: PackerAmi
+    name: string
+    region: Regions
+}
+
+export class AmiBuildQueue {
+
+    public static amis: PackerAmi[] = []
+    public static regions: Regions[] = []
+    /**
+     * 
+     * @param ami The ami to add ot the queue
+     */
+    public static add(ami: PackerAmi): PackerAmi {
+        for (var i in PackerBuilder.amis) {
+            let name = PackerBuilder.amis[i].name
+            if (name == ami.name) {
+                throw Error(`${ami.name} AMI name already in the build queue`)
+            }
+        }
+
+        AmiBuildQueue.amis.push(ami)
+
+        return ami 
+    }
+
+    public static setRegions(...regions: Regions[]): void {
+        AmiBuildQueue.regions = regions
+    }
+
+    public static bootstrap(): AmiQueuedBuild[] {
+        let builds: AmiQueuedBuild[] = []
+        for (var i in AmiBuildQueue.amis) {
+
+            let ami = AmiBuildQueue.amis[i]
+
+            for (var ii in AmiBuildQueue.regions) {
+
+                let region = AmiBuildQueue.regions[ii]
+
+                builds.push({
+                    packerAmi: ami,
+                    name: ami.name,
+                    region: region
+                })
+            }
+        }
+
+        return builds
+    }
+
 }

@@ -89,6 +89,7 @@ export interface PlaybookJson {
     hosts: string
     name: string
     roles: any[]
+    pre_tasks?: any[]
 
 }
 /**
@@ -101,6 +102,11 @@ export class AnsibleProvisioner extends Provisioner {
      */
     private _pathToRoles: string
     private _roles: Array<AnsibleRole> = []
+    private _postTasks: any[] = []
+    private _preTasks: any[] = [{
+        name: 'something something',
+        set_facts: "some fact"
+    }]
 
     constructor(aName: string, aPathToRoles: string) {
         super(aName, "ansible-local")
@@ -117,13 +123,6 @@ export class AnsibleProvisioner extends Provisioner {
         this._roles.push(role)
     }
 
-    public test1() {
-
-    }
-
-    public test2() {
-
-    }
 
     public generate(region: builder.Regions, aPath: string): {[key: string]: any} {
 
@@ -150,6 +149,10 @@ export class AnsibleProvisioner extends Provisioner {
             }
 
         }
+
+        //if (this._preTasks.length > 0) {
+            //pb.pre_tasks = this._preTasks
+        //}
 
         let p = path.join(aPath, `playbook-${region}.yaml`)
 

@@ -26,12 +26,6 @@ export interface Tag {
     key: string;
     value: string;
 }
-export interface PackerAmiBuild {
-    name: string;
-    region: Regions;
-    packerFile: string;
-    tags?: Tag[];
-}
 export declare abstract class PackerAmi {
     private _name;
     protected provisioners: Array<PackerAmiProvisioner>;
@@ -39,6 +33,7 @@ export declare abstract class PackerAmi {
     protected path: string;
     protected packerJson: PackerFileJson;
     constructor(aName: string, aSshUser: string);
+    private validateName;
     get name(): string;
     /**
      * Add a provisioner to the AMI
@@ -87,6 +82,10 @@ export declare class Ubuntu16Ami extends PackerAmi {
     constructor(aName: string);
     getAmiId(region: Regions): Promise<string>;
 }
+export declare class Ubuntu14Ami extends PackerAmi {
+    constructor(aName: string);
+    getAmiId(region: Regions): Promise<string>;
+}
 export declare class PackerBuilder {
     static amis: Array<PackerAmi>;
     static images: Record<string, PackerAmi>;
@@ -98,7 +97,30 @@ export declare class PackerBuilder {
      * Will generate the packer build file and (if applicable) the ansible playbook
      * for each AMI+REGION combination
      */
-    static bootstrapBuilds(): Promise<void>;
+    static bootstrapBuilds(): Promise<PackerAmiBuild[]>;
     static inquirerlist(): any[];
+}
+export interface PackerAmiBuild {
+    name: string;
+    region: Regions;
+    packerFile: string;
+    path: string;
+    tags?: Tag[];
+}
+export interface AmiQueuedBuild {
+    packerAmi: PackerAmi;
+    name: string;
+    region: Regions;
+}
+export declare class AmiBuildQueue {
+    static amis: PackerAmi[];
+    static regions: Regions[];
+    /**
+     *
+     * @param ami The ami to add ot the queue
+     */
+    static add(ami: PackerAmi): PackerAmi;
+    static setRegions(...regions: Regions[]): void;
+    static bootstrap(): AmiQueuedBuild[];
 }
 export {};

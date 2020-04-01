@@ -82,3 +82,192 @@ export const defaultAwsLinux2Ami = async (region: Regions): Promise<string> => {
     return <string>res[0].ImageId
 }
 
+export const defaultAwsLinuxAmi = async (region: Regions): Promise<string> => {
+
+    let filter: Filter[] = [
+
+
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'name',
+            Values: ['amzn-ami*x86_64-gp2']
+        },
+        {
+            Name: 'description',
+            Values: ["*Linux*"]
+        },
+    ]
+    let res: Image[] = await AmiFilter.filterImages(region, filter)
+
+    return <string>res[0].ImageId
+}
+
+export const defaultUbuntu18 = async (region: Regions): Promise<string> => {
+
+    let filter: Filter[] = [
+
+
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["Canonical, Ubuntu, 18.04 LTS*"]
+        },
+    ]
+    let res: Image[] = await AmiFilter.filterImages(region, filter)
+    return <string>res[0].ImageId
+}
+
+export const defaultUbuntu16 = async (region: Regions): Promise<string> => {
+
+    let filter: Filter[] = [
+
+
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["Canonical, Ubuntu, 16.04 LTS*"]
+        },
+    ]
+
+    let res: Image[] = await AmiFilter.filterImages(region, filter)
+
+    // filter out UNSUPPORTED
+    let img: Image[] = []
+    let reg = new RegExp(/unsupported/i)
+    res.forEach((v, k) => {
+        if (v.Description && !v.Description.match(reg)) {
+            img.push(v)
+        }
+    })
+
+    return <string>img[0].ImageId
+}
+
+export const defaultUbuntu14 = async (region: Regions): Promise<string> => {
+
+    let filter: Filter[] = [
+
+
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["*Ubuntu*14*"]
+        },
+    ]
+    let res: Image[] = await AmiFilter.filterImages(region, filter)
+
+    return <string>res[0].ImageId
+}
+
+const VERSION = require('../../package.json').version
+const BUILDER = require('../../package.json').name
+
+

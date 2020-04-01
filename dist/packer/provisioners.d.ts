@@ -49,6 +49,7 @@ export interface PlaybookJson {
     hosts: string;
     name: string;
     roles: any[];
+    pre_tasks?: any[];
 }
 /**
  * Represents an ansible-local packer provisioner
@@ -59,11 +60,11 @@ export declare class AnsibleProvisioner extends Provisioner {
      */
     private _pathToRoles;
     private _roles;
+    private _postTasks;
+    private _preTasks;
     constructor(aName: string, aPathToRoles: string);
     get pathToRoles(): string;
     addRole(role: AnsibleRole): void;
-    test1(): void;
-    test2(): void;
     generate(region: builder.Regions, aPath: string): {
         [key: string]: any;
     };

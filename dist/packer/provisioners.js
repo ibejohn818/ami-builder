@@ -70,6 +70,11 @@ class AnsibleProvisioner extends Provisioner {
     constructor(aName, aPathToRoles) {
         super(aName, "ansible-local");
         this._roles = [];
+        this._postTasks = [];
+        this._preTasks = [{
+                name: 'something something',
+                set_facts: "some fact"
+            }];
         // set the path to roles location
         this._pathToRoles = aPathToRoles;
     }
@@ -78,10 +83,6 @@ class AnsibleProvisioner extends Provisioner {
     }
     addRole(role) {
         this._roles.push(role);
-    }
-    test1() {
-    }
-    test2() {
     }
     generate(region, aPath) {
         let pb = {
@@ -105,6 +106,9 @@ class AnsibleProvisioner extends Provisioner {
                 });
             }
         }
+        //if (this._preTasks.length > 0) {
+        //pb.pre_tasks = this._preTasks
+        //}
         let p = path.join(aPath, `playbook-${region}.yaml`);
         fs.writeFileSync(p, yaml.dump([pb]));
         return {
