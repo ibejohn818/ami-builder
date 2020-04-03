@@ -13,6 +13,7 @@ const client_1 = require("./aws/client");
 const path = __importStar(require("path"));
 const builder_1 = require("./packer/builder");
 const runner = __importStar(require("./packer/runner"));
+const tagger = __importStar(require("./ami/tagger"));
 const cdk = __importStar(require("./ami/cdk"));
 const clib = __importStar(require("./cli/build"));
 const handleList = (csv) => {
@@ -27,13 +28,32 @@ program
     .on("option:region", (r) => {
     client_1.AWSClient.conf.region = r;
 });
-program.command("list <name>")
+program.command("list")
+    .arguments("<buildjs>")
     .alias('ls')
-    .action(async (name = '') => {
+    .action(async (cmd) => {
+    console.log(cmd);
+    let p = path.resolve(path.normalize(cmd));
+    Promise.resolve().then(() => __importStar(require(p))).then(async (res) => {
+        let t = [];
+        let builds = builder_1.AmiBuildQueue.bootstrap();
+        for (var i in builds) {
+            let b = builds[i];
+            let at = new tagger.AmiList(b.name, b.region);
+            let imgs = await at.getAmis();
+            imgs.forEach((v) => {
+                t.push(v);
+            });
+        }
+        console.table(t);
+    }).catch((err) => {
+        console.log("ERR: ", err);
+    });
 });
 program.command('test')
     .action(async () => {
-    cdk.AmiBuilder.AmiMap.allRegions("Web");
+    let res = await cdk.AmiMapper.map("Web", builder_1.Regions.USWEST2);
+    console.log();
     // let at = new tagger.AmiBuilder.AmiTagger(
     //   Regions.USWEST2,
     //   "Web",

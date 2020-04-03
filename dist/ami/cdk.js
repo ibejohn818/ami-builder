@@ -1,32 +1,58 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("../aws/client");
 const builder_1 = require("../packer/builder");
-var AmiBuilder;
-(function (AmiBuilder) {
-    class AmiMap {
-        static async allRegions(amiName) {
-            let res = {};
-            Object.values(builder_1.Regions).forEach((v, l) => {
-                let filters = [
-                    {
-                        Name: 'tag:meta:Builder',
-                        Values: ['ami-builder']
-                    },
-                    {
-                        Name: 'tag:Name',
-                        Values: [amiName]
-                    },
-                    {
-                        Name: 'tag:Active',
-                        Values: ['true']
-                    }
-                ];
-                //let ami = <EC2>AWSClient.client("EC2", {region: v})
-                //.describeImages({Filters: filters}.promise()
-            });
-            return res;
-        }
+const VERSION = require('../../package.json').version;
+const BUILDER = require('../../package.json').name;
+class AmiMapper {
+    static async allRegions(amiName) {
+        let res = {};
+        Object.values(builder_1.Regions).forEach((v, l) => {
+            let filters = [
+                {
+                    Name: 'tag:meta:Builder',
+                    Values: [BUILDER]
+                },
+                {
+                    Name: 'tag:Name',
+                    Values: [amiName]
+                },
+                {
+                    Name: 'tag:Active',
+                    Values: ['true']
+                }
+            ];
+            //let ami = <EC2>AWSClient.client("EC2", {region: v})
+            //.describeImages({Filters: filters}.promise()
+        });
+        return res;
     }
-    AmiBuilder.AmiMap = AmiMap;
-})(AmiBuilder = exports.AmiBuilder || (exports.AmiBuilder = {}));
+    static async map(name, ...regions) {
+        let res = {};
+        for (var i in regions) {
+            let v = regions[i];
+            let ec2 = client_1.AWSClient.client("EC2", { region: v });
+            let filters = [
+                {
+                    Name: 'tag:meta:Builder',
+                    Values: [BUILDER]
+                },
+                {
+                    Name: 'tag:Name',
+                    Values: [name]
+                },
+                {
+                    Name: 'tag:meta:Active',
+                    Values: ['true']
+                }
+            ];
+            let r = await ec2.describeImages({ Filters: filters }).promise();
+            if (r.Images && r.Images[0] && r.Images[0].ImageId) {
+                res[v] = r.Images[0].ImageId;
+            }
+        }
+        return res;
+    }
+}
+exports.AmiMapper = AmiMapper;
 //# sourceMappingURL=cdk.js.map

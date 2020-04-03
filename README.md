@@ -2,8 +2,19 @@
 
 The AMI Builder is a library and CLI to define your AWS AMI's in typescript and deploy them using Hashicorp Packer. The AMI Builder library will also generate an AMI map for use with CDK to better manage your AMI's across regions and across various stages of your infrastructures (IE: Staging/Dev/Production).  
 
-The AMI Builder cli will not only build and provision your AMI's but also manage which versions are active/-in-active.  
+## Installation
+`npm install ami-builder`
 
+In your tsconfig.json ensure you have the esModuleInterop enabled:
+
+```json
+"esModuleInterop" : true
+```
+
+Install HashiCorp Packer:   
+https://packer.io/
+
+## Provisioners
 The AMI Builder currently has the following Packer provisioners implemented.
 
 - Shell
@@ -78,7 +89,7 @@ ami_builder.AmiBuildQueue.setRegions(
     ami_builder.Regions.USEAST1,
 )
 
-// you then run the `ami-builder build -b {PATH TO COMPILED JAVASCRIPT}` to build the AMI's
+// you then run the `ami-builder build {PATH TO COMPILED JAVASCRIPT}` to build the AMI's
 
 ```
 ## Packer and ansible files generated

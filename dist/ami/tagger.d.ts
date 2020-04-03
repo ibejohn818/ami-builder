@@ -1,13 +1,35 @@
+import EC2 from 'aws-sdk/clients/ec2';
 import { Regions } from '../packer/builder';
-export declare class AmiTagger {
-    private region;
-    private name;
+declare class AmiBase {
+    protected _client?: EC2;
+    protected region: Regions;
+    protected name: string;
+    constructor(aName: string, aRegion: Regions);
+    protected get client(): EC2;
+}
+export declare class AmiTagger extends AmiBase {
     private amiId;
-    private _client?;
     constructor(aRegion: Regions, aName: string, aAmiId: string);
-    private get client();
     clearActive(): Promise<void>;
     getTags(): Promise<void>;
     private getAllAmis;
+    private removeActiveTags;
     setTags(isActive?: boolean): Promise<void>;
 }
+export interface AmiTag {
+    key: string;
+    value: string;
+}
+export interface AmiBuildImage {
+    id: string;
+    name: string;
+    region: Regions;
+    active: boolean;
+    tags: AmiTag[];
+    created?: Date | undefined;
+}
+export declare class AmiList extends AmiBase {
+    constructor(aName: string, aRegion: Regions);
+    getAmis(): Promise<AmiBuildImage[]>;
+}
+export {};

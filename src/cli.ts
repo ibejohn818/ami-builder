@@ -30,15 +30,41 @@ program
         AWSClient.conf.region = r
     })
 
-program.command("list <name>")
+program.command("list")
+        .arguments("<buildjs>")
         .alias('ls')
-        .action(async (name='') => {
+        .action(async (cmd) => {
+
+          console.log(cmd)
+
+          let p = path.resolve(path.normalize(cmd))
+
+          import(p).then(async (res) => {
+            let t: tagger.AmiBuildImage[] = []
+            let builds = AmiBuildQueue.bootstrap()
+            for (var i in builds) {
+              let b = builds[i]
+              let at = new tagger.AmiList(b.name,
+                                          b.region)
+              let imgs = await at.getAmis()
+
+              imgs.forEach((v) => {
+                  t.push(v)
+              })
+            }
+            console.table(t)
+          
+          }).catch((err) => {
+            console.log("ERR: ", err)
+          })
+
         })
 
 program.command('test')
     .action(async () => {
+        let res = await cdk.AmiMapper.map("Web", Regions.USWEST2)
+      console.log()
 
-      cdk.AmiBuilder.AmiMap.allRegions("Web")
 
 
     // let at = new tagger.AmiBuilder.AmiTagger(
