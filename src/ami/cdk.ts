@@ -11,6 +11,8 @@ export interface AmiMap {
 }
 export class AmiMapper {
 
+    public static cache: {[key: string]: AmiMap} = {}
+
     public static async allRegions(amiName: string): Promise<{[key: string]: string}> {
 
         let res = {}
@@ -41,6 +43,11 @@ export class AmiMapper {
     }
 
     public static async map(name: string, ...regions: Regions[]): Promise<AmiMap> {
+        // check cache
+        if (AmiMapper.cache[name]) {
+            return AmiMapper.cache[name]
+        }
+
         let res: AmiMap = {}
 
         for (var i in regions) {
@@ -62,11 +69,17 @@ export class AmiMapper {
             ]
 
             let r = await ec2.describeImages({Filters: filters}).promise()
-                if (r.Images && r.Images[0] && r.Images[0].ImageId) {
-                    res[v] = r.Images[0].ImageId
-                }
+            if (r.Images && r.Images[0] && r.Images[0].ImageId) {
+                res[v] = r.Images[0].ImageId
+            } else {
+                throw Error(`No Active AMI for ${name}: ${v}`)
+            }
 
         }
+
+        // save to cache
+        AmiMapper.cache[name] = res
+
         return res
     }
 }

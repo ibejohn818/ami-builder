@@ -14,11 +14,13 @@ import * as tagger from './ami/tagger'
 import * as cdk from './ami/cdk'
 import * as clib from './cli/build'
 import * as readline from 'readline'
+import * as os from 'os'
 
 
 const handleList = (csv: string): string[] => {
     return csv.split(",")
 }
+
 
 const program = commander.program
 program
@@ -62,10 +64,9 @@ program.command("list")
 
 program.command('test')
     .action(async () => {
-        let res = await cdk.AmiMapper.map("Web", Regions.USWEST2)
-      console.log()
-
-
+        //let res = await cdk.AmiMapper.map("Web", Regions.USWEST2)
+        console.log(await cdk.AmiMapper.map("WebPython3", Regions.USWEST2))
+        console.log(await cdk.AmiMapper.map("BastionNat", Regions.USWEST2))
 
     // let at = new tagger.AmiBuilder.AmiTagger(
     //   Regions.USWEST2,

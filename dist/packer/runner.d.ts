@@ -5,6 +5,7 @@ export declare class AmiBuildRunner {
     static packerExtraOps: string[];
     private _task;
     private _proc;
+    private idFound;
     constructor(task: PackerAmiBuild);
     execute(): Promise<void>;
     /**

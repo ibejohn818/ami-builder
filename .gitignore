@@ -39,3 +39,4 @@ yarn.lock
 __packer__
 .nyc_output
 tryit.*
+/tags

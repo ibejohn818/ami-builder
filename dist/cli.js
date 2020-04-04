@@ -52,8 +52,9 @@ program.command("list")
 });
 program.command('test')
     .action(async () => {
-    let res = await cdk.AmiMapper.map("Web", builder_1.Regions.USWEST2);
-    console.log();
+    //let res = await cdk.AmiMapper.map("Web", Regions.USWEST2)
+    console.log(await cdk.AmiMapper.map("WebPython3", builder_1.Regions.USWEST2));
+    console.log(await cdk.AmiMapper.map("BastionNat", builder_1.Regions.USWEST2));
     // let at = new tagger.AmiBuilder.AmiTagger(
     //   Regions.USWEST2,
     //   "Web",

@@ -79,6 +79,10 @@ export class AmiTagger extends AmiBase {
             }
         })
 
+        if (ids.length <= 0) {
+            return
+        }
+
         await this.client.deleteTags({
             Resources: ids,
             Tags: [

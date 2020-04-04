@@ -6,17 +6,21 @@ import { AmiTagger } from '../ami/tagger'
 
 class Logger {
 
-    private path: string
     private logHandle: fs.WriteStream
+    private _build: PackerAmiBuild
 
-    constructor(aPath: string, name: string) {
-        this.path = aPath
+    constructor(aBuild: PackerAmiBuild) {
+        this._build = aBuild
         this.logHandle = fs.createWriteStream(
-            `${this.path}/${name}.log`,
+            `${this._build.path}/${this.genFileName()}`,
             {
                 flags: 'a'
             }
         )
+    }
+    private genFileName(): string {
+       let name = `${this._build.name}-${this._build.region}.log` 
+       return name
     }
 
     public write(data: string) {
@@ -37,6 +41,7 @@ export class AmiBuildRunner {
 
     private _task: PackerAmiBuild
     private _proc: cp.ChildProcess | undefined = undefined
+    private idFound: boolean = false
 
     constructor(task: PackerAmiBuild) {
         this._task = task
@@ -49,7 +54,7 @@ export class AmiBuildRunner {
             AmiBuildRunner.packerExtraOps)
         let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `
         let proc = cp.spawn(cmd, args, {shell: true})
-        let log = new Logger(this._task.path, this._task.name)
+        let log = new Logger(this._task)
 
         proc.stdout.on('data', (data) => {
             let line = `${data}`
@@ -118,13 +123,18 @@ export class AmiBuildRunner {
     }
 
     private async parseAmiId(data: string) {
-        let re = new RegExp(/(.*)(?!=id)(?!=[a-z]{2}\-[a-z]{1,}\-[0-9]{1})(:)(ami)(\-)([a-z0-9]{5,})$/, 'mi')
+        // check if we already found an AMI ID
+        if (this.idFound) {
+            return
+        }
+
+        let re = new RegExp(/(.*?)([a-z]{2}-[a-z]{1,}-[0-9]{1})(:)(\s?)(ami)(-)([a-z0-9]{5,})$/, 'mi')
         if (re.test(data)) {
             let res: RegExpMatchArray | null = data.match(re)
             if (res === null) {
                 return
             }
-            let id = `${res[3]}${res[4]}${res[5]}`
+            let id = `${res[5]}${res[6]}${res[7]}`
             let tagger = new AmiTagger(
                 this._task.region,
                 this._task.name,
@@ -132,6 +142,8 @@ export class AmiBuildRunner {
             )
             await tagger.setTags()
             console.log("AMI Tagged: ", id)
+            console.log("LINE: ", data)
+            this.idFound = true
         }
     }
     
