@@ -40,3 +40,5 @@ __packer__
 .nyc_output
 tryit.*
 /tags
+/tags.temp
+/tags.lock
