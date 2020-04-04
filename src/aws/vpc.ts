@@ -17,7 +17,6 @@ export class VPC {
         }
 
         let ec2 = <EC2>AWSClient.client('EC2', {region: region})
-
         let filters: Filter[] = [
             {Name: 'isDefault', Values: ['true']}
         ]

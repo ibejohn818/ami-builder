@@ -1,26 +1,31 @@
 import * as chai from 'chai'
 import * as sinon from 'sinon'
-const sinonTest = require('sinon-test')
 import {AWSClient} from '../../src/aws/client'
 import * as AWS from 'aws-sdk'
 const expect = chai.expect
 const assert = chai.assert
-const test = sinonTest(sinon)
 
 
-describe("AWS Client Config", test(function () {
+describe("AWS Client Config", function () {
+
 
     afterEach(() => {
+        sinon.restore()
         AWSClient.conf = {}
     })
 
-    let configSpy = this.spy(AWS.config, "update")
+    it("tester", () => {
 
-    AWSClient.conf['region'] = 'test'
+        let configSpy = sinon.spy(AWS.config, "update")
+        AWSClient.conf['region'] = 'test'
 
-    console.log(configSpy.getCall(0).args)
+        AWSClient.config()
 
-}))
+        console.log(configSpy.getCall(0).args)
+
+    })
+
+})
 
 describe('test AWSCLient', function () {
     it('Should return a client', function () {
