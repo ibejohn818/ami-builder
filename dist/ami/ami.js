@@ -61,6 +61,9 @@ exports.defaultAwsLinux2Ami = async (region) => {
         },
     ];
     let res = await AmiFilter.filterImages(region, filter);
+    if (res.length <= 0) {
+        throw Error("Unable to find Amazon Linux 2 AMI");
+    }
     return res[0].ImageId;
 };
 exports.defaultAwsLinuxAmi = async (region) => {

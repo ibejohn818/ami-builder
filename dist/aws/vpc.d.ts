@@ -1,6 +1,7 @@
 import { Regions } from '../packer/builder';
-export declare namespace AmiBuilder {
-    class VPC {
-        static defaultVpc(region: Regions): Promise<string>;
-    }
+export declare class VPC {
+    static defaultVpcCache: {
+        [key: string]: string;
+    };
+    static defaultVpc(region: Regions): Promise<string>;
 }

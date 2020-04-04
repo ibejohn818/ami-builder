@@ -70,7 +70,7 @@ class PackerAmi {
             ssh_username: this.sshUser,
             ami_name: `AMI ${this.name} ${+new Date()}`,
             region: region,
-            vpc_id: await vpc.AmiBuilder.VPC.defaultVpc(region),
+            vpc_id: await vpc.VPC.defaultVpc(region),
             source_ami: await this.getAmiId(region)
         };
         this.packerJson['builders'] = [builder];

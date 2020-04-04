@@ -79,6 +79,10 @@ export const defaultAwsLinux2Ami = async (region: Regions): Promise<string> => {
     ]
     let res: Image[] = await AmiFilter.filterImages(region, filter)
 
+    if (res.length <= 0) {
+        throw Error("Unable to find Amazon Linux 2 AMI")
+    }
+
     return <string>res[0].ImageId
 }
 

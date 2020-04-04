@@ -43,27 +43,9 @@
   "scripts": {
     "watch": "npx tsc -w",
     "start": "node ./dist/index.js",
-    "_test": "npx mocha -r ts-node/register tests/**/*.test.ts",
-    "coverage": "npx nyc -r lcov -r text-summary -e .ts -x \"*.test.ts\" npm run test",
     "build": "npx tsc -p ./tsconfig.json",
-    "test": "jest --colors --coverageReporters lcov --coverage test"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
-    "testResultsProcessor": "<rootDir>/node_modules/ts-jest/coverageprocessor.js",
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}",
-      "src/*.{ts,tsx}"
-    ],
-    "coverageReporters": [
-      "html",
-      "json"
-    ]
+    "coverage": "npx nyc -r lcov -r text-summary -e .ts -x \"*.test.ts\" npm run test",
+    "test": "npx mocha -r ts-node/register tests/**/*.test.ts"
   },
   "author": "",
   "license": "ISC",
