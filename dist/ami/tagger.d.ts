@@ -26,10 +26,19 @@ export interface AmiBuildImage {
     region: Regions;
     active: boolean;
     tags: AmiTag[];
-    created?: Date | undefined;
+    created: Date;
+}
+export interface ActiveAmiInstance {
+    id: string;
+    name: string;
+}
+export interface AmiBuildImageInspect extends AmiBuildImage {
+    activeInstances: ActiveAmiInstance[];
 }
 export declare class AmiList extends AmiBase {
     constructor(aName: string, aRegion: Regions);
     getAmis(): Promise<AmiBuildImage[]>;
+    inspectAmi(): Promise<AmiBuildImageInspect[]>;
+    private extractNameTag;
 }
 export {};

@@ -19,24 +19,25 @@ describe("Test VPC Class", () => {
 
     it("Test defaultVpc", async () => {
 
-        let c = sinon.stub(AWSClient, "client")
-
-        c.returns(<any>{
-            describeVpcs: () => {
-                return {
-                    promise: () => {
-                        return  {
-                            Vpcs: [
-                                {VpcId: 'mock-id'}
-                            ]
+        // patch ec2 client
+        sinon.stub(AWSClient, "client")
+            .returns(<any>{
+                describeVpcs: () => {
+                    return {
+                        promise: () => {
+                            return  {
+                                Vpcs: [
+                                    {VpcId: 'mock-id'}
+                                ]
+                            }
                         }
                     }
                 }
-            }
-        })
-        let res = await VPC.defaultVpc(Regions.USWEST2)
+            })
 
+        let res = await VPC.defaultVpc(Regions.USWEST2)
         assert.equal("mock-id", res, "Default VPC ID not correct")
+
         // lets call the same region to test the cache
         await VPC.defaultVpc(Regions.USWEST2)
         sinon.assert.calledOnce(c)
@@ -46,23 +47,21 @@ describe("Test VPC Class", () => {
 
     it("Test defaultVpc Rejection", async () => {
 
-        // create a spu
-        let c = sinon.stub(AWSClient, "client")
-                .returns(<any>{
-                    describeVpcs: () => {
-                        return {
-                            promise: () => {
-                                return {
-                                    Vpcs: []
-                                }
+        // patch ec2 client
+        sinon.stub(AWSClient, "client")
+            .returns(<any>{
+                describeVpcs: () => {
+                    return {
+                        promise: () => {
+                            return {
+                                Vpcs: []
                             }
                         }
                     }
-                })
+                }
+            })
 
         await expect(VPC.defaultVpc(Regions.USWEST2)).to.be.rejected
-
-
 
     })
 

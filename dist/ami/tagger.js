@@ -38,10 +38,8 @@ class AmiTagger extends AmiBase {
             { Name: 'tag:meta:Builder', Values: [BUILDER] }
         ];
         let res = await this.client.describeImages({ Filters: filters }).promise();
-        if (res.Images) {
-            return res.Images;
-        }
-        return [];
+        let imgs = (res.Images) ? res.Images : [];
+        return imgs;
     }
     async removeActiveTags() {
         let amis = await this.getAllAmis();
@@ -118,7 +116,7 @@ class AmiList extends AmiBase {
             let id = (img['ImageId']) ? img['ImageId'] : "";
             let active = false;
             let tags = [];
-            let created = undefined;
+            let created = new Date();
             if (img.Tags) {
                 img.Tags.forEach((t) => {
                     let key = (t.Key) ? t.Key : "";
@@ -136,16 +134,63 @@ class AmiList extends AmiBase {
                 });
             }
             let n = {
-                id: id,
+                id,
+                active,
+                tags,
+                created,
                 name: this.name,
-                active: active,
-                tags: tags,
-                region: this.region,
-                created
+                region: this.region
             };
             r.push(n);
         });
+        r.sort((a, b) => {
+            return (a.created > b.created) ? 1 : -1;
+        });
         return r;
+    }
+    async inspectAmi() {
+        let amis = await this.getAmis();
+        let res = [];
+        for (var i in amis) {
+            let v = amis[i];
+            let a = [];
+            let inst = [];
+            let f = [
+                {
+                    Name: 'image-id',
+                    Values: [v.id]
+                }
+            ];
+            let q = await this.client.describeInstances({
+                Filters: f
+            }).promise();
+            let reservations = (q.Reservations) ? q.Reservations : [];
+            reservations.forEach((v) => {
+                let t = (v.Instances) ? v.Instances : [];
+                inst = inst.concat(t);
+            });
+            for (var ii in inst) {
+                let t = this.extractNameTag(inst[ii]);
+                a.push(t);
+            }
+            res.push({ ...v, ...{ activeInstances: a } });
+        }
+        return res;
+    }
+    extractNameTag(inst) {
+        let name = "";
+        let id = (inst.InstanceId) ? inst.InstanceId : "";
+        let tags = (inst.Tags) ? inst.Tags : [];
+        for (var i in tags) {
+            let t = tags[i];
+            if (t.Key == "Name") {
+                name = (t.Value) ? t.Value : "";
+            }
+        }
+        return {
+            id,
+            name,
+        };
     }
 }
 exports.AmiList = AmiList;
