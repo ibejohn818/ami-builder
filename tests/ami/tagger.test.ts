@@ -9,30 +9,36 @@ const expect = chai.expect
 const assert = chai.assert
 chai.use(require("chai-as-promised"))
 
-describe('AmiTagger class', function () {
+/**
+ * constants used in tag meta data
+ */
+const VERSION = require('../../package.json').version
+const BUILDER = require('../../package.json').name
+
+describe('The AmiTagger class', function () {
+
+    var awsClientStub: sinon.SinonStub,
+        deleteTagsStub: sinon.SinonStub,
+        createTagsStub: sinon.SinonStub,
+        dateStub: sinon.SinonStub
 
     beforeEach(() => {
-    })
+        awsClientStub = sinon.stub(AWSClient, "client")
+        deleteTagsStub = sinon.stub()
+        createTagsStub = sinon.stub()
+        dateStub = sinon.stub(Date.prototype, "toUTCString" as any)
+        dateStub.returns(<string>"mock-date-time")
 
-    afterEach(() => {
-        sinon.restore()
-    })
-
-
-    it('setTags method success', async () => {
-
-        let ac = sinon.stub(AWSClient, "client")
-        let del = sinon.stub()
-        let create = sinon.stub()
-        del.returns(<any>{
+        deleteTagsStub.returns(<any>{
             promise:()=> {
             }
         })
-        create.returns(<any>{
+        createTagsStub.returns(<any>{
             promise() {}
         })
-        ac.onCall(0).returns(<any>{
-            describeImages: () => {
+        awsClientStub.onCall(0).returns(<any>{
+            describeImages:
+                () => {
                 return {
                     promise: async () => {
                        return {
@@ -46,12 +52,21 @@ describe('AmiTagger class', function () {
                 }
             },
         })
-        ac.onCall(1).returns(<any>{
-            deleteTags: del
+        awsClientStub.onCall(1).returns(<any>{
+            deleteTags: deleteTagsStub
         })
-        ac.onCall(2).returns(<any>{
-            createTags: create
+        awsClientStub.onCall(2).returns(<any>{
+            createTags: createTagsStub
         })
+    })
+
+    afterEach(() => {
+        sinon.restore()
+    })
+
+
+    it('exec. setTags method success', async () => {
+
 
 
         let  ami = new tagger.AmiTagger(Regions.USWEST1,
@@ -59,8 +74,8 @@ describe('AmiTagger class', function () {
                                         "mock-id")
 
         await ami.setTags()
-
-        expect(del.getCall(0).lastArg).to.deep.equal({
+        console.log(createTagsStub.getCall(0).lastArg.Tags)
+        expect(deleteTagsStub.getCall(0).lastArg).to.deep.equal({
             Resources:["mock-id"],
             Tags: [
                 {Key: "meta:Active", Value: 'true'}
@@ -68,4 +83,7 @@ describe('AmiTagger class', function () {
         })
 
     })
+
+
+    
 })

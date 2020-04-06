@@ -17,4 +17,5 @@ export declare class AWSClient {
      */
     static client(name: string, conf?: AWSProps): AWS.Service;
 }
+export declare const clientFactory: <T>(service: string, conf?: AWSProps) => T;
 export {};

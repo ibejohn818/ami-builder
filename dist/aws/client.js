@@ -38,4 +38,14 @@ class AWSClient {
 }
 exports.AWSClient = AWSClient;
 AWSClient.conf = {};
+exports.clientFactory = (service, conf = {}) => {
+    console.log("TYPE: ", T & Function.name);
+    let cprops = {};
+    if (conf != undefined) {
+        cprops = { ...AWSClient.conf, ...conf };
+    }
+    //let c = new (<any>AWS)[name](cprops) as T
+    let c = new AWS[service](cprops);
+    return c;
+};
 //# sourceMappingURL=client.js.map

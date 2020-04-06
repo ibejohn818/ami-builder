@@ -1,4 +1,4 @@
-import {AWSClient} from '../aws/client'
+import {AWSClient, clientFactory} from '../aws/client'
 import EC2 from 'aws-sdk/clients/ec2'
 import {Filter,
     Image,
