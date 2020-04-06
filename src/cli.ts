@@ -201,6 +201,7 @@ program.command('build')
 
 program.command("inspect")
   .arguments("<buildjs>")
+  .description("Inspects a selected ami. Shows all builds, active state and which ami id's have deployed ec2 instances")
   .action(async (build) => {
 
     console.log("BUI: ", build)
@@ -208,15 +209,47 @@ program.command("inspect")
 
     await import(buildPath)
 
-    let builds = AmiBuildQueue.bootstrap()
+    const builds = AmiBuildQueue.bootstrap()
 
-    let res = await cli_menus.amiList(builds)
+    const res = await cli_menus.amiList(builds)
 
-    let query = new tagger.AmiList(res.name, res.region)
+    const query = new tagger.AmiList(res.name, res.region)
 
-    let amis = await query.inspectAmiTablized()
+    const amis = await query.inspectAmiList()
+    const active = "✔"
+    const showActive = (a: boolean) => {
+      return (a)? chalk.green("✔"): chalk.red("✘")
+    }
+    const hr = () => console.log("----------------")
+    const dtfUS = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',minute: '2-digit', second: '2-digit' });
 
-    console.table(amis)
+
+
+    console.log("Name: ", chalk.bold.cyan(res.name))
+    console.log("Region: ", chalk.bold.blue(res.region))
+    hr()
+    console.log('Active=', showActive(true), ' In-Active=', showActive(false))
+    hr()
+
+    amis.forEach((v) => {
+      let format = chalk.bold
+      if (v.active) {
+        format = chalk.bold.green
+      }
+      console.log("[" + showActive(v.active) + "]",
+                  format(v.id),
+                 "(" + chalk.blue(dtfUS.format(v.created)) + ")")
+      if (v.activeInstances.length > 0) {
+        console.log("     ", chalk.cyan("Deployed Instances"))
+        v.activeInstances.forEach((i) => {
+          console.log("       - ",
+                      chalk.green(i.name),
+                      "[" + chalk.blue(i.id) + "]"
+                     )
+        })
+      }
+      
+    })
 
   })
 

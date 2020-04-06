@@ -134,7 +134,7 @@ class AmiList extends AmiBase {
             r.push(n);
         });
         r.sort((a, b) => {
-            return (a.created > b.created) ? 1 : -1;
+            return (a.created < b.created) ? 1 : -1;
         });
         return r;
     }

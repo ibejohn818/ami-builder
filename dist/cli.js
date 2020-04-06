@@ -163,15 +163,39 @@ program.command('build')
 });
 program.command("inspect")
     .arguments("<buildjs>")
+    .description("Inspects a selected ami. Shows all builds, active state and which ami id's have deployed ec2 instances")
     .action(async (build) => {
     console.log("BUI: ", build);
     let buildPath = path.resolve(build);
     await Promise.resolve().then(() => __importStar(require(buildPath)));
-    let builds = builder_1.AmiBuildQueue.bootstrap();
-    let res = await cli_menus.amiList(builds);
-    let query = new tagger.AmiList(res.name, res.region);
-    let amis = await query.inspectAmiTablized();
-    console.table(amis);
+    const builds = builder_1.AmiBuildQueue.bootstrap();
+    const res = await cli_menus.amiList(builds);
+    const query = new tagger.AmiList(res.name, res.region);
+    const amis = await query.inspectAmiList();
+    const active = "✔";
+    const showActive = (a) => {
+        return (a) ? chalk.green("✔") : chalk.red("✘");
+    };
+    const hr = () => console.log("----------------");
+    const dtfUS = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    console.log("Name: ", chalk.bold.cyan(res.name));
+    console.log("Region: ", chalk.bold.blue(res.region));
+    hr();
+    console.log('Active=', showActive(true), ' In-Active=', showActive(false));
+    hr();
+    amis.forEach((v) => {
+        let format = chalk.bold;
+        if (v.active) {
+            format = chalk.bold.green;
+        }
+        console.log("[" + showActive(v.active) + "]", format(v.id), "(" + chalk.blue(dtfUS.format(v.created)) + ")");
+        if (v.activeInstances.length > 0) {
+            console.log("     ", chalk.cyan("Deployed Instances"));
+            v.activeInstances.forEach((i) => {
+                console.log("       - ", chalk.green(i.name), "[" + chalk.blue(i.id) + "]");
+            });
+        }
+    });
 });
 program.parse(process.argv);
 //# sourceMappingURL=cli.js.map
