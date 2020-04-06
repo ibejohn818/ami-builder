@@ -35,9 +35,6 @@ class AWSClient {
         let c = new AWS[name](cprops);
         return c;
     }
-    static testMethod() {
-        return "test";
-    }
 }
 exports.AWSClient = AWSClient;
 AWSClient.conf = {};

@@ -214,8 +214,9 @@ program.command("inspect")
 
     let query = new tagger.AmiList(res.name, res.region)
 
-    let amis = await query.inspectAmi()
-    console.log("AMI: ", amis)
+    let amis = await query.inspectAmiTablized()
+
+    console.table(amis)
 
   })
 

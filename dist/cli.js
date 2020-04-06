@@ -170,8 +170,8 @@ program.command("inspect")
     let builds = builder_1.AmiBuildQueue.bootstrap();
     let res = await cli_menus.amiList(builds);
     let query = new tagger.AmiList(res.name, res.region);
-    let amis = await query.inspectAmi();
-    console.log("AMI: ", amis);
+    let amis = await query.inspectAmiTablized();
+    console.table(amis);
 });
 program.parse(process.argv);
 //# sourceMappingURL=cli.js.map

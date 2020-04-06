@@ -12,6 +12,30 @@ import {Regions} from '../packer/builder'
 const VERSION = require('../../package.json').version
 const BUILDER = require('../../package.json').name
 
+export interface AmiTag {
+    key: string
+    value: string
+}
+
+export interface AmiBuildImage {
+    id: string
+    name: string
+    region: Regions
+    active: boolean
+    tags: AmiTag[],
+    created: Date
+}
+
+
+export interface AmiActiveInstances {
+    id: string
+    name: string
+}
+
+export interface AmiBuildImageInspect extends AmiBuildImage {
+    activeInstances: AmiActiveInstances[]
+}
+
 
 class AmiBase {
 
@@ -25,10 +49,7 @@ class AmiBase {
     }
 
     protected get client(): EC2 {
-        if (!this._client) {
-            this._client = <EC2>AWSClient.client("EC2", {region: this.region}) 
-        }
-        return this._client
+        return <EC2>AWSClient.client("EC2", {region: this.region}) 
     }
 }
 
@@ -36,27 +57,16 @@ export class AmiTagger extends AmiBase {
 
     private amiId: string
 
+    /**
+     *Creates an instance of AmiTagger.
+     * @param {Regions} aRegion
+     * @param {string} aName
+     * @param {string} aAmiId
+     * @memberof AmiTagger
+     */
     constructor(aRegion: Regions, aName: string, aAmiId: string) {
         super(aName, aRegion)
         this.amiId = aAmiId
-    }
-
-    public async clearActive() {
-        let all = await this.getAllAmis()
-
-        all.forEach((v, k) => {
-            console.log(v.Tags)
-        })
-
-    }
-
-    public async getTags() {
-
-        let res = await this.getAllAmis()
-        res.forEach((v, k) => {
-            console.log(v.Tags)
-        })
-        
     }
 
     private async getAllAmis(): Promise<Image[]> {
@@ -83,24 +93,22 @@ export class AmiTagger extends AmiBase {
             }
         })
 
-        if (ids.length <= 0) {
-            return
+        if (ids.length > 0) {
+            await this.client.deleteTags({
+                Resources: ids,
+                Tags: [
+                    {Key: "meta:Active", Value: 'true'}
+                ]
+            }).promise()
         }
 
-        await this.client.deleteTags({
-            Resources: ids,
-            Tags: [
-                {Key: "meta:Active", Value: 'true'}
-            ]
-        }).promise()
 
     }
 
     public async setTags(isActive: boolean = false) {
 
-        await this.removeActiveTags()
 
-        let ec2 = <EC2>AWSClient.client("EC2", {region: this.region}) 
+        await this.removeActiveTags()
 
         let p = {
             Resources: [
@@ -130,33 +138,10 @@ export class AmiTagger extends AmiBase {
                 
             ]
         }
-        await ec2.createTags(p).promise()
+
+        await this.client.createTags(p).promise()
     }
 
-}
-
-export interface AmiTag {
-    key: string
-    value: string
-}
-
-export interface AmiBuildImage {
-    id: string
-    name: string
-    region: Regions
-    active: boolean
-    tags: AmiTag[],
-    created: Date
-}
-
-
-export interface ActiveAmiInstance {
-    id: string
-    name: string
-}
-
-export interface AmiBuildImageInspect extends AmiBuildImage {
-    activeInstances: ActiveAmiInstance[]
 }
 
 export class AmiList extends AmiBase {
@@ -234,7 +219,7 @@ export class AmiList extends AmiBase {
         return r
     }
 
-    public async inspectAmi(): Promise<AmiBuildImageInspect[]> {
+    public async inspectAmiList(): Promise<AmiBuildImageInspect[]> {
 
         let amis = await this.getAmis()
 
@@ -242,7 +227,7 @@ export class AmiList extends AmiBase {
 
         for(var i in amis) {
             let v = amis[i]
-            let a: ActiveAmiInstance[] = []
+            let a: AmiActiveInstances[] = []
             let inst: Instance[] = []
             let f: Filter[] = [
                 {
@@ -266,15 +251,16 @@ export class AmiList extends AmiBase {
                 a.push(t)
             }
 
+            // merge AmiBuildImage to create AmiBuildImageInspect
             res.push({...v, ...{activeInstances: a}})
-                
-
         }
 
         return res
     }
-
-    private extractNameTag(inst: Instance): ActiveAmiInstance {
+    /**
+     * 
+     */
+    private extractNameTag(inst: Instance): AmiActiveInstances {
         let name: string = ""
         let id: string = (inst.InstanceId) ? inst.InstanceId: ""
         let tags = (inst.Tags) ? inst.Tags: []
@@ -292,7 +278,38 @@ export class AmiList extends AmiBase {
         }
 
     }
+    /**
+     * 
+     */
+    public async inspectAmiTablized(): Promise<{[key: string]: any}[]> {
 
+        let res: {[key: string]: any}[] = [] 
+
+        let amis = await this.inspectAmiList()
+
+        amis.forEach((v) => {
+
+            let active = (v.activeInstances.length >0) ? v.activeInstances: []
+
+            let inst: string= ""
+
+            active.forEach((vv) => {
+                inst += `${vv.name} (${vv.id}) `
+            })
+
+            res.push({
+                name: v.name,
+                created: v.created,
+                ami_id: v.id,
+                active: v.active,
+                in_use: inst
+            })
+
+        })
+
+        return res
+
+    }
 
 }
 

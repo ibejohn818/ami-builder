@@ -16,6 +16,5 @@ export declare class AWSClient {
      * @param name (string): The name of the service
      */
     static client(name: string, conf?: AWSProps): AWS.Service;
-    static testMethod(): string;
 }
 export {};

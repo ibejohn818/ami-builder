@@ -100,3 +100,25 @@ ami_builder.AmiBuildQueue.setRegions(
 
 
 ## Example to get active images for CDK
+
+```typescript
+import * as ec2 from 'aws-cdk/aws-e2'
+import * as ami_builder from 'ami-builder'
+
+let amis = await ami_builder.AmiMapper.map("AmiName",
+                                            ami_builder.Regions.USWEST1, 
+                                            ami_builder.Regions.USEAST2)
+ec2.MachineImage.genericLinux(amis) 
+```
+
+
+## TODO
+
+- Complete unit-test coverage
+- Finalize module/interface/class/function naming
+    - ***Note: while names will change overall functionality/conventions/usage will not and should be re-factorable VIA simple search/replace... (lib is currently used in some production projects)***
+- Add more packer provisioners
+- Complete cli interface
+- Code decs
+- Usage examples
+- ....

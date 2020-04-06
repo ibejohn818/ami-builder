@@ -20,7 +20,7 @@ describe("Test VPC Class", () => {
     it("Test defaultVpc", async () => {
 
         // patch ec2 client
-        sinon.stub(AWSClient, "client")
+        let c = sinon.stub(AWSClient, "client")
             .returns(<any>{
                 describeVpcs: () => {
                     return {

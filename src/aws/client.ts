@@ -41,8 +41,5 @@ export class AWSClient {
 
     }
 
-    static testMethod(): string {
-        return "test"
-    }
 
 }

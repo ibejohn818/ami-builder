@@ -9,28 +9,20 @@ class AmiBase {
         this.region = aRegion;
     }
     get client() {
-        if (!this._client) {
-            this._client = client_1.AWSClient.client("EC2", { region: this.region });
-        }
-        return this._client;
+        return client_1.AWSClient.client("EC2", { region: this.region });
     }
 }
 class AmiTagger extends AmiBase {
+    /**
+     *Creates an instance of AmiTagger.
+     * @param {Regions} aRegion
+     * @param {string} aName
+     * @param {string} aAmiId
+     * @memberof AmiTagger
+     */
     constructor(aRegion, aName, aAmiId) {
         super(aName, aRegion);
         this.amiId = aAmiId;
-    }
-    async clearActive() {
-        let all = await this.getAllAmis();
-        all.forEach((v, k) => {
-            console.log(v.Tags);
-        });
-    }
-    async getTags() {
-        let res = await this.getAllAmis();
-        res.forEach((v, k) => {
-            console.log(v.Tags);
-        });
     }
     async getAllAmis() {
         let filters = [
@@ -49,19 +41,17 @@ class AmiTagger extends AmiBase {
                 ids.push(img.ImageId);
             }
         });
-        if (ids.length <= 0) {
-            return;
+        if (ids.length > 0) {
+            await this.client.deleteTags({
+                Resources: ids,
+                Tags: [
+                    { Key: "meta:Active", Value: 'true' }
+                ]
+            }).promise();
         }
-        await this.client.deleteTags({
-            Resources: ids,
-            Tags: [
-                { Key: "meta:Active", Value: 'true' }
-            ]
-        }).promise();
     }
     async setTags(isActive = false) {
         await this.removeActiveTags();
-        let ec2 = client_1.AWSClient.client("EC2", { region: this.region });
         let p = {
             Resources: [
                 this.amiId
@@ -89,7 +79,7 @@ class AmiTagger extends AmiBase {
                 },
             ]
         };
-        await ec2.createTags(p).promise();
+        await this.client.createTags(p).promise();
     }
 }
 exports.AmiTagger = AmiTagger;
@@ -148,7 +138,7 @@ class AmiList extends AmiBase {
         });
         return r;
     }
-    async inspectAmi() {
+    async inspectAmiList() {
         let amis = await this.getAmis();
         let res = [];
         for (var i in amis) {
@@ -173,10 +163,14 @@ class AmiList extends AmiBase {
                 let t = this.extractNameTag(inst[ii]);
                 a.push(t);
             }
+            // merge AmiBuildImage to create AmiBuildImageInspect
             res.push({ ...v, ...{ activeInstances: a } });
         }
         return res;
     }
+    /**
+     *
+     */
     extractNameTag(inst) {
         let name = "";
         let id = (inst.InstanceId) ? inst.InstanceId : "";
@@ -191,6 +185,28 @@ class AmiList extends AmiBase {
             id,
             name,
         };
+    }
+    /**
+     *
+     */
+    async inspectAmiTablized() {
+        let res = [];
+        let amis = await this.inspectAmiList();
+        amis.forEach((v) => {
+            let active = (v.activeInstances.length > 0) ? v.activeInstances : [];
+            let inst = "";
+            active.forEach((vv) => {
+                inst += `${vv.name} (${vv.id}) `;
+            });
+            res.push({
+                name: v.name,
+                created: v.created,
+                ami_id: v.id,
+                active: v.active,
+                in_use: inst
+            });
+        });
+        return res;
     }
 }
 exports.AmiList = AmiList;

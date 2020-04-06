@@ -29,17 +29,21 @@ describe("AWS Client Config", function () {
 
 describe('test AWSCLient', function () {
     it('Should return a client', function () {
+
         let sb = sinon.stub(AWS.config, "update")
+
         AWSClient.conf['region'] = 'test'
+
         let res = AWSClient.client("S3")
+
         expect(res instanceof AWS.Service).is.true
-        console.log()
-        sb.restore()
+
         sinon.assert.calledWith(sb, {region: 'test'})
 
     })
 
     afterEach(() => {
         AWSClient.conf = {}
+        sinon.restore()
     })
 })
