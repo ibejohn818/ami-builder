@@ -39,7 +39,7 @@ class AWSClient {
 exports.AWSClient = AWSClient;
 AWSClient.conf = {};
 exports.clientFactory = (service, conf = {}) => {
-    console.log("TYPE: ", T & Function.name);
+    //console.log("TYPE: ",  T&Function.name as string)
     let cprops = {};
     if (conf != undefined) {
         cprops = { ...AWSClient.conf, ...conf };

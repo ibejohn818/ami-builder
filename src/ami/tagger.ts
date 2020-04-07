@@ -247,6 +247,7 @@ export class AmiList extends AmiBase {
             })
 
             for (var ii in inst) {
+                console.log("Instance: ", inst[i])
                 let t = this.extractNameTag(inst[ii])
                 a.push(t)
             }

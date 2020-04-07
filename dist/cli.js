@@ -20,9 +20,10 @@ const chalk = require("chalk");
 const handleList = (csv) => {
     return csv.split(",");
 };
+const VERSION = require("../package.json").version;
 const program = commander.program;
 program
-    .version("0.0.1")
+    .version(VERSION)
     .option('-r, --region <region>', "AWS Region")
     .option('--profile <profile>', "AWS Profile")
     .option('--access-key <access key>', "AWS Access Key")
