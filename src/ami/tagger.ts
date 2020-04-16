@@ -142,6 +142,59 @@ export class AmiTagger extends AmiBase {
         await this.client.createTags(p).promise()
     }
 
+    public async delete(): Promise<AmiDeleteResult> {
+
+        let res: AmiDeleteResult = {
+            msg: "Error deleting image",
+            deleted: false
+        }
+
+        const ec2 = this.client
+
+        const img = await ec2.describeImages({ImageIds: [this.amiId]}).promise()
+
+        if (img.Images && img.Images.length <= 0) {
+            res.msg = "No images found to delete"
+            return res
+        }
+
+        const dereg = await ec2.deregisterImage({ImageId: this.amiId}).promise()
+
+        if (!dereg) {
+            return res
+        }
+
+        // we deleted
+        res.deleted = true
+        res.msg = "Image deregistered"
+
+        let snap_ids = []
+
+        if (img.Images && img.Images[0].RootDeviceType == "ebs" && img.Images[0].BlockDeviceMappings) {
+           for (var i in  img.Images[0].BlockDeviceMappings) {
+               let bdm = img.Images[0].BlockDeviceMappings[i]
+               if (bdm.Ebs && bdm.Ebs.SnapshotId) {
+                   snap_ids.push(bdm.Ebs.SnapshotId)
+               }
+           }
+        }
+
+        if (snap_ids.length > 0) {
+            for (var i in snap_ids) {
+                let id = snap_ids[i]
+                await ec2.deleteSnapshot({SnapshotId: id}).promise()
+            }
+            res.msg += " & ${snap_ids.length} snapshot(s) deleted"
+        }
+
+        return res
+    }
+
+}
+
+export interface AmiDeleteResult {
+    msg: string
+    deleted: boolean
 }
 
 export class AmiList extends AmiBase {
@@ -258,6 +311,8 @@ export class AmiList extends AmiBase {
 
         return res
     }
+
+
     /**
      * 
      */

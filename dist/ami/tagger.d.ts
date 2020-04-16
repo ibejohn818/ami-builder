@@ -39,6 +39,11 @@ export declare class AmiTagger extends AmiBase {
     private getAllAmis;
     private removeActiveTags;
     setTags(isActive?: boolean): Promise<void>;
+    delete(): Promise<AmiDeleteResult>;
+}
+export interface AmiDeleteResult {
+    msg: string;
+    deleted: boolean;
 }
 export declare class AmiList extends AmiBase {
     constructor(aName: string, aRegion: Regions);

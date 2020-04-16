@@ -14,6 +14,7 @@ import * as cdk from './ami/cdk'
 import * as cli_menus from './cli/menus'
 import * as readline from 'readline'
 import * as os from 'os'
+import * as help_txt from './cli/help'
 const chalk = require("chalk")
 
 const handleList = (csv: string): string[] => {
@@ -176,27 +177,9 @@ program.command('build')
 
     })
     .on("--help", () => {
-      console.log("")
-      console.log("Fuzzy search:")
-      console.log("[names...] can be multiple string arguments matching ") 
-      console.log("the `${name} ${region}` of your ami's (case-sensitive). ") 
-      console.log("Strings prefixed with '^' (IE: ^Web) will be a negative ") 
-      console.log("match (you may need to escape \\^).") 
-      console.log("")
-      console.log("Match rules will be evaluated in the order given for each ")
-      console.log("ami name + region. The search is not terribly intelligent ")
-      console.log("so it would be best to put your negative matches after your ")
-      console.log("positive matches.")
-      console.log("")
-      console.log("Fuzzy search examples:")
-      console.log("Say we have the following ami's queued:")
-      console.log("ProdWeb us-west-1, StagingWeb us-west-1, ProdWeb us-east-2, StagingWeb us-east-2,")
-      console.log("ProdWeb us-west-2, StagingWeb us-west-2")
-      console.log("")
-      console.log("The command: `ami-builder path/to/build.js Web west ^-2`")
-      console.log("Would result in:  ProdWeb us-west-1, StagingWeb us-west-1")
-      console.log("")
-
+        help_txt.build.map((v) => {
+          console.log(v)
+        })
     })
 
 
@@ -252,6 +235,25 @@ program.command("inspect")
       }
       
     })
+
+  })
+
+program.command("delete")
+  .arguments("<buildjs>")
+  .action(async (build) => {
+
+  })
+
+program.command("prune")
+  .description("Remove all in-active AMI's. Will not remove if an AMI is in-use")
+  .arguments("<buildjs>")
+  .action(async (build) => {
+      const buildPath = path.resolve(build)
+      await import(buildPath)
+      const builds = AmiBuildQueue.bootstrap()
+      const res = await cli_menus.amiCheckbox(builds)
+
+      console.log("RES: ", res)
 
   })
 
