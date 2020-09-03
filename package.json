@@ -16,7 +16,7 @@
     "inquirer": "^7.1.0",
     "js-yaml": "^3.13.1",
     "rimraf": "^3.0.2",
-    "terminal-kit": "^1.35.2"
+    "terminal-kit": "^1.43.0"
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
