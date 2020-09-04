@@ -272,6 +272,38 @@ export class AmiList extends AmiBase {
         return r
     }
 
+    public async getInActiveAmis(): Promise<AmiBuildImage[]> {
+        let ls = await this.getAmis()
+        var result: AmiBuildImage[] = [] 
+
+        ls.forEach((v) => {
+            if (!v.active) {
+                result.push(v)
+            }
+        })
+
+        return result
+    }
+
+    public async deleteAmis(active: boolean = false, inUse: boolean = false) {
+        
+        var amis: AmiBuildImage[] = []
+        var toDelete: AmiBuildImage[] = []
+
+        if (active) {
+            amis = await this.getAmis()
+        } else {
+            amis = await this.getInActiveAmis()
+        }
+
+        //for (var i in amis) {
+            //let a = amis[i]
+            //let ai = await a.in
+        //}
+
+
+    }
+
     public async inspectAmiList(): Promise<AmiBuildImageInspect[]> {
 
         let amis = await this.getAmis()

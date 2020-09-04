@@ -194,7 +194,14 @@ program.command("prune")
     await Promise.resolve().then(() => __importStar(require(buildPath)));
     const builds = builder_1.AmiBuildQueue.bootstrap();
     const res = await cli_menus.amiCheckbox(builds);
-    console.log("RES: ", res);
+    res.forEach(async (v) => {
+        let ls = new tagger.AmiList(v.name, v.region);
+        let del = await ls.getInActiveAmis();
+        del.forEach(async (vv) => {
+            let tmpAmi = new tagger.AmiTagger(vv.region, vv.name, vv.id);
+            await tmpAmi.delete();
+        });
+    });
 });
 program.parse(process.argv);
 //# sourceMappingURL=cli.js.map

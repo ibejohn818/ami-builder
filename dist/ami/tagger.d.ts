@@ -48,6 +48,8 @@ export interface AmiDeleteResult {
 export declare class AmiList extends AmiBase {
     constructor(aName: string, aRegion: Regions);
     getAmis(): Promise<AmiBuildImage[]>;
+    getInActiveAmis(): Promise<AmiBuildImage[]>;
+    deleteAmis(active?: boolean, inUse?: boolean): Promise<void>;
     inspectAmiList(): Promise<AmiBuildImageInspect[]>;
     /**
      *

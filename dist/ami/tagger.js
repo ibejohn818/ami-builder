@@ -174,6 +174,30 @@ class AmiList extends AmiBase {
         });
         return r;
     }
+    async getInActiveAmis() {
+        let ls = await this.getAmis();
+        var result = [];
+        ls.forEach((v) => {
+            if (!v.active) {
+                result.push(v);
+            }
+        });
+        return result;
+    }
+    async deleteAmis(active = false, inUse = false) {
+        var amis = [];
+        var toDelete = [];
+        if (active) {
+            amis = await this.getAmis();
+        }
+        else {
+            amis = await this.getInActiveAmis();
+        }
+        //for (var i in amis) {
+        //let a = amis[i]
+        //let ai = await a.in
+        //}
+    }
     async inspectAmiList() {
         let amis = await this.getAmis();
         let res = [];

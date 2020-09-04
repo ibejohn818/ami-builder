@@ -253,7 +253,20 @@ program.command("prune")
       const builds = AmiBuildQueue.bootstrap()
       const res = await cli_menus.amiCheckbox(builds)
 
-      console.log("RES: ", res)
+      res.forEach(async (v) => {
+        let ls = new tagger.AmiList(v.name, v.region)
+        let del = await ls.getInActiveAmis()
+        del.forEach(async (vv) => {
+          let tmpAmi = new tagger.AmiTagger(vv.region,
+                                      vv.name,
+                                      vv.id)
+
+          await tmpAmi.delete()
+
+        })
+      })
+
+
 
   })
 
