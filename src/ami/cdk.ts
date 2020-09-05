@@ -1,5 +1,5 @@
 import {AWSClient} from '../aws/client'
-import {Regions} from '../packer/builder'
+import {Regions} from '../types'
 import {Filter} from 'aws-sdk/clients/ec2'
 import EC2 from 'aws-sdk/clients/ec2'
 

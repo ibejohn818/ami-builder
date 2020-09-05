@@ -1,6 +1,6 @@
 import * as builder from '../packer/builder'
 import * as inquirer from 'inquirer'
-import {AmiQueuedBuild} from '../packer/builder'
+import {AmiQueuedBuild} from '../types'
 
 
 export const amiCheckbox = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuild[]> => {

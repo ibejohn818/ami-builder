@@ -1,8 +1,9 @@
 import {Filter} from '../ami/ami'
 import {AWSClient} from './client'
-import {Regions} from '../packer/builder'
 import EC2 from 'aws-sdk/clients/ec2'
-
+import {
+    Regions
+} from '../types'
 
 
 export class VPC {

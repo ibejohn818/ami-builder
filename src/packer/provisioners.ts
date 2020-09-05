@@ -2,28 +2,13 @@ import * as yaml from 'js-yaml'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as builder from './builder'
+import {
+    Provisioner,
+    AnsibleRole,
+    PlaybookJson,
+    Regions,
+} from '../types'
 
-export abstract class Provisioner {
-
-    protected _name: string
-    protected _provisionerType: string
-
-    constructor(aName: string, aProvisionerType: string) {
-        this._name = aName
-        this._provisionerType = aProvisionerType
-    }
-
-    public get provisionerType(): string {
-        return this._provisionerType
-    }
-
-    public get name(): string {
-        return this._name
-    }
-
-    abstract generate(region: builder.Regions, path: string): {[key: string]: any}
-
-}
 /**
  * Represents a packer shell provisioner
  *
@@ -58,7 +43,7 @@ export class ShellProvisioner extends Provisioner {
     /**
      * create shell provisioner block
      */
-    public generate(region: builder.Regions, aPath: string): {[key: string]: any} {
+    public generate(region: Regions, aPath: string): {[key: string]: any} {
         // add the shebang
         let p = {
             type: this.provisionerType,
@@ -70,28 +55,6 @@ export class ShellProvisioner extends Provisioner {
 }
 
 
-
-/**
- * A contract representing an ansible role
- *
- * @property
- */
-export interface AnsibleRole {
-    role: string
-    index: number
-    vars?: {[key: string]: any}
-}
-
-export interface PlaybookJson {
-
-    become: boolean
-    become_method: string
-    hosts: string
-    name: string
-    roles: any[]
-    pre_tasks?: any[]
-
-}
 /**
  * Represents an ansible-local packer provisioner
  */
@@ -124,7 +87,7 @@ export class AnsibleProvisioner extends Provisioner {
     }
 
 
-    public generate(region: builder.Regions, aPath: string): {[key: string]: any} {
+    public generate(region: Regions, aPath: string): {[key: string]: any} {
 
         let pb: PlaybookJson = {
             become: true,

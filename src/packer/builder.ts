@@ -6,35 +6,20 @@ import {spawn} from 'child_process'
 import * as rimraf from 'rimraf'
 import * as yaml from 'js-yaml'
 import * as vpc from '../aws/vpc'
+import {
+    Regions,
+    AmiId,
+    PackerAmiProvisioner,
+    PackerFileJson,
+    Tag,
+    Provisioner,
+    PackerAmiBuild,
+    AmiQueuedBuild,
+    IPackerAmi,
+} from '../types'
 
-interface PackerAmiProvisioner {
-   index: number
-   provisioner: prov.Provisioner
-}
 
-export interface AmiId  {
-    id?: string
-    image?: Promise<ami_module.Image>
-}
-
-export enum Regions {
-    USWEST1 = "us-west-1",
-    USWEST2 = "us-west-2",
-    USEAST1 = "us-east-1",
-    USEAST2 = "us-east-2"
-}
-
-export interface PackerFileJson {
-    builders: {[key: string]: any}[]
-    provisioners: {[key: string]: any}[]
-}
-
-export interface Tag {
-    key: string,
-    value: string
-}
-
-export abstract class PackerAmi {
+export class PackerAmi implements IPackerAmi {
 
     private _name: string
     protected provisioners: Array<PackerAmiProvisioner> = []
@@ -51,6 +36,11 @@ export abstract class PackerAmi {
         this.sshUser = aSshUser
     }
 
+    public async getAmiId(region: Regions): Promise<string> {
+        throw Error("Not Implemented")
+        return "Not Implemented"
+    }
+
     private validateName(aName: string) {
     }
 
@@ -60,7 +50,7 @@ export abstract class PackerAmi {
     /**
      * Add a provisioner to the AMI
      */
-    public addProvisioner(aIndex: number, aProv: prov.Provisioner): prov.Provisioner {
+    public addProvisioner(aIndex: number, aProv: Provisioner): Provisioner {
         this.provisioners.push({
             index: aIndex,
             provisioner: aProv
@@ -69,7 +59,7 @@ export abstract class PackerAmi {
         return aProv
     }
 
-    public prependProvisioner(aProv: prov.Provisioner): prov.Provisioner {
+    public prependProvisioner(aProv: Provisioner): Provisioner {
 
         for (var i in this.provisioners) {
             this.provisioners[i].index += 1
@@ -109,12 +99,6 @@ export abstract class PackerAmi {
 
     }
 
-    /**
-     *  Method for an AMI to get its default AMI ID to use
-     *  as the base for the build.
-     * @param region 
-     */
-    abstract getAmiId(region: Regions): Promise<string>
 
     public resetPacker(): void {
         this.packerJson = {
@@ -350,19 +334,6 @@ export class PackerBuilder {
     }
 }
 
-export interface PackerAmiBuild {
-    name: string,
-    region: Regions
-    packerFile: string
-    path: string
-    tags?: Tag[]
-}
-
-export interface AmiQueuedBuild {
-    packerAmi: PackerAmi
-    name: string
-    region: Regions
-}
 
 export class AmiBuildQueue {
 

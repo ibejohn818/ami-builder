@@ -1,8 +1,10 @@
 import * as cp from 'child_process'
 import * as builder from './builder'
-import {PackerAmiBuild} from './builder'
 import * as fs from 'fs'
 import { AmiTagger } from '../ami/tagger'
+import {
+    PackerAmiBuild
+} from '../types'
 
 class Logger {
 

@@ -7,7 +7,9 @@ import {Filter,
     ReservationList,
     Reservation
     } from 'aws-sdk/clients/ec2'
-import {Regions} from '../packer/builder'
+import {
+    Regions
+} from '../types'
 
 const VERSION = require('../../package.json').version
 const BUILDER = require('../../package.json').name

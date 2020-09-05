@@ -1,7 +1,12 @@
 import * as AWS from 'aws-sdk'
 import {AWSClient} from '../aws/client'
-import {Provisioner, ShellProvisioner} from '../packer/provisioners'
-import {Regions} from '../packer/builder'
+import {
+    Provisioner,
+    Regions,
+} from '../types'
+import {
+    ShellProvisioner,
+} from '../packer/provisioners'
 
 
 export type Filter = {Name: string, Values: string[]}
