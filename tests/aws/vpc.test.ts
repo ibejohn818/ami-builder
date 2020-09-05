@@ -3,7 +3,7 @@ import * as sinon from 'sinon'
 import * as AWS from 'aws-sdk'
 import {AWSClient} from '../../src/aws/client'
 import {VPC} from '../../src/aws/vpc'
-import {Regions} from '../../src/packer/builder'
+import {Regions} from '../../src/types'
 
 const expect = chai.expect
 const assert = chai.assert

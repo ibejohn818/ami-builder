@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 import * as sinon from 'sinon'
 import * as runner from '../../src/packer/runner'
-import {PackerAmiBuild, Regions} from '../../src/packer/builder'
+import {PackerAmiBuild, Regions} from '../../src/types'
 
 
 const expect = chai.expect
