@@ -43,3 +43,4 @@ tryit.*
 /tags.temp
 /tags.lock
 venv
+dist/tryit.*

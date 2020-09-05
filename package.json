@@ -1,6 +1,6 @@
 {
   "name": "ami-builder",
-  "version": "0.0.1-beta.8",
+  "version": "0.0.1-beta.10",
   "description": "Define AWS AMI in typescript and provision with packer. For use with AWS CDK.",
   "main": "dist/",
   "files": [
@@ -52,7 +52,7 @@
     "run-cli": "node dist/cli.js",
     "test": "npx mocha -r ts-node/register tests/**/*.test.ts"
   },
-  "author": "",
+  "author": "John Hardy <john@johnchardy.com> (https://johnchardy.com)",
   "license": "ISC",
   "bin": {
     "ami-builder": "./dist/cli.js"
