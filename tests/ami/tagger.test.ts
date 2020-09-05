@@ -2,7 +2,7 @@ import * as chai from 'chai'
 import * as sinon from 'sinon'
 import * as AWS from 'aws-sdk'
 import {AWSClient} from '../../src/aws/client'
-import {Regions} from '../../src/packer/builder'
+import {Regions} from '../../src/types'
 import * as tagger from '../../src/ami/tagger'
 
 const expect = chai.expect
