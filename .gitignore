@@ -42,3 +42,4 @@ tryit.*
 /tags
 /tags.temp
 /tags.lock
+dist/
