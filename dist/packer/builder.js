@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.AmazonLinuxAmi = exports.AmazonLinux2Ami = exports.PackerAmi = void 0;
+exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.Ubuntu20Ami = exports.AmazonLinuxAmi = exports.AmazonLinux2Ami = exports.PackerAmi = void 0;
 const prov = __importStar(require("./provisioners"));
 const ami_module = __importStar(require("../ami/ami"));
 const path = __importStar(require("path"));
@@ -186,12 +186,23 @@ class AmazonLinuxAmi extends PackerAmi {
     }
 }
 exports.AmazonLinuxAmi = AmazonLinuxAmi;
+class Ubuntu20Ami extends PackerAmi {
+    constructor(aName) {
+        super(aName, "ubuntu");
+    }
+    async getAmiId(region) {
+        let res = await ami_module.defaultUbuntu20(region);
+        return res;
+    }
+}
+exports.Ubuntu20Ami = Ubuntu20Ami;
 class Ubuntu18Ami extends PackerAmi {
     constructor(aName) {
         super(aName, "ubuntu");
     }
     async getAmiId(region) {
-        return await ami_module.defaultUbuntu18(region);
+        let res = await ami_module.defaultUbuntu18(region);
+        return res;
     }
 }
 exports.Ubuntu18Ami = Ubuntu18Ami;

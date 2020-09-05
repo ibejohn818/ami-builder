@@ -42,6 +42,10 @@ export declare class AmazonLinuxAmi extends PackerAmi {
     constructor(aName: string);
     getAmiId(region: Regions): Promise<string>;
 }
+export declare class Ubuntu20Ami extends PackerAmi {
+    constructor(aName: string);
+    getAmiId(region: Regions): Promise<string>;
+}
 export declare class Ubuntu18Ami extends PackerAmi {
     constructor(aName: string);
     getAmiId(region: Regions): Promise<string>;

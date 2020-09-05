@@ -14,6 +14,7 @@ export declare class AmiFilter {
 }
 export declare const defaultAwsLinux2Ami: (region: Regions) => Promise<string>;
 export declare const defaultAwsLinuxAmi: (region: Regions) => Promise<string>;
-export declare const defaultUbuntu18: (region: Regions) => Promise<string>;
-export declare const defaultUbuntu16: (region: Regions) => Promise<string>;
 export declare const defaultUbuntu14: (region: Regions) => Promise<string>;
+export declare const defaultUbuntu16: (region: Regions) => Promise<string>;
+export declare const defaultUbuntu18: (region: Regions) => Promise<string>;
+export declare const defaultUbuntu20: (region: Regions) => Promise<string>;

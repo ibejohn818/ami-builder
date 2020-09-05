@@ -45,7 +45,7 @@ export class PackerAmi implements IPackerAmi {
     }
 
     public get name(): string {
-       return this._name.replace(" ", "") 
+        return this._name.replace(" ", "") 
     }
     /**
      * Add a provisioner to the AMI
@@ -146,26 +146,26 @@ export class PackerAmi implements IPackerAmi {
      * @param region The region in-scope
      */
     public async writeAssets(region: Regions): Promise<string> {
-       let p = path.join(this.buildPath, `packer-${region}.json` ) 
-       console.log("File Path:", p)
+        let p = path.join(this.buildPath, `packer-${region}.json` ) 
+        console.log("File Path:", p)
 
-       // sort the provisioners
-       this.provisioners.sort((a: PackerAmiProvisioner, b: PackerAmiProvisioner) => {
+        // sort the provisioners
+        this.provisioners.sort((a: PackerAmiProvisioner, b: PackerAmiProvisioner) => {
             return a.index > b.index ? 1:-1
-       })
-    
-       for (var i in this.provisioners) {
-           let pv = this.provisioners[i]
-           if (!(pv.provisioner instanceof prov.ShellProvisioner)) {
-            //    continue
-           }
+        })
 
-           this.packerJson.provisioners.push(pv.provisioner.generate(region, this.buildPath))
+        for (var i in this.provisioners) {
+            let pv = this.provisioners[i]
+            if (!(pv.provisioner instanceof prov.ShellProvisioner)) {
+                //    continue
+            }
 
-       }
-       const res = fs.writeFileSync(p, JSON.stringify(this.packerJson, null, 4))
+            this.packerJson.provisioners.push(pv.provisioner.generate(region, this.buildPath))
 
-       return p
+        }
+        const res = fs.writeFileSync(p, JSON.stringify(this.packerJson, null, 4))
+
+        return p
 
     }
 
@@ -202,7 +202,7 @@ export class PackerAmi implements IPackerAmi {
         ])
         this.prependProvisioner(shell)
     }
- }
+}
 
 export class AmazonLinux2Ami extends PackerAmi {
 
@@ -227,15 +227,27 @@ export class AmazonLinuxAmi extends PackerAmi {
 
 }
 
+export class Ubuntu20Ami extends PackerAmi {
+
+    constructor(aName: string) {
+        super(aName, "ubuntu")
+    }
+    async getAmiId(region: Regions): Promise<string> {
+        let res = await ami_module.defaultUbuntu20(region)
+        return res
+    }    
+
+}
+
 export class Ubuntu18Ami extends PackerAmi {
 
     constructor(aName: string) {
         super(aName, "ubuntu")
     }
     async getAmiId(region: Regions): Promise<string> {
-        return await ami_module.defaultUbuntu18(region)
+        let res = await ami_module.defaultUbuntu18(region)
+        return res
     }    
-
 
 }
 

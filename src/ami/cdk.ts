@@ -34,7 +34,7 @@ export class AmiMapper {
             ]
 
             //let ami = <EC2>AWSClient.client("EC2", {region: v})
-                        //.describeImages({Filters: filters}.promise()
+            //.describeImages({Filters: filters}.promise()
 
 
         })

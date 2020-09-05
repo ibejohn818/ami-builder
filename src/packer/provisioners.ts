@@ -114,7 +114,7 @@ export class AnsibleProvisioner extends Provisioner {
         }
 
         //if (this._preTasks.length > 0) {
-            //pb.pre_tasks = this._preTasks
+        //pb.pre_tasks = this._preTasks
         //}
 
         let p = path.join(aPath, `playbook-${region}.yaml`)

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultUbuntu14 = exports.defaultUbuntu16 = exports.defaultUbuntu18 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
+exports.defaultUbuntu20 = exports.defaultUbuntu18 = exports.defaultUbuntu16 = exports.defaultUbuntu14 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
 const client_1 = require("../aws/client");
 class AmiFilter {
     /**
@@ -109,7 +109,7 @@ exports.defaultAwsLinuxAmi = async (region) => {
     let res = await AmiFilter.filterImages(region, filter);
     return res[0].ImageId;
 };
-exports.defaultUbuntu18 = async (region) => {
+exports.defaultUbuntu14 = async (region) => {
     let filter = [
         {
             Name: 'architecture',
@@ -141,7 +141,7 @@ exports.defaultUbuntu18 = async (region) => {
         },
         {
             Name: 'description',
-            Values: ["Canonical, Ubuntu, 18.04 LTS*"]
+            Values: ["*Ubuntu*14*"]
         },
     ];
     let res = await AmiFilter.filterImages(region, filter);
@@ -193,7 +193,7 @@ exports.defaultUbuntu16 = async (region) => {
     });
     return img[0].ImageId;
 };
-exports.defaultUbuntu14 = async (region) => {
+exports.defaultUbuntu18 = async (region) => {
     let filter = [
         {
             Name: 'architecture',
@@ -225,11 +225,57 @@ exports.defaultUbuntu14 = async (region) => {
         },
         {
             Name: 'description',
-            Values: ["*Ubuntu*14*"]
+            Values: ["Canonical, Ubuntu, 18.04 LTS*"]
         },
     ];
     let res = await AmiFilter.filterImages(region, filter);
     return res[0].ImageId;
+};
+exports.defaultUbuntu20 = async (region) => {
+    let filter = [
+        {
+            Name: 'architecture',
+            Values: ["x86_64"]
+        },
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        {
+            Name: 'ena-support',
+            Values: ['true']
+        },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'description',
+            Values: ["Canonical, Ubuntu, 20.04 LTS*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    // filter out UNSUPPORTED
+    let img = [];
+    let reg = new RegExp(/unsupported/i);
+    res.forEach((v, k) => {
+        if (v.Description && !v.Description.match(reg)) {
+            img.push(v);
+        }
+    });
+    return img[0].ImageId;
 };
 const VERSION = require('../../package.json').version;
 const BUILDER = require('../../package.json').name;
