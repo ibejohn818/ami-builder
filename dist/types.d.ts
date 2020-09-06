@@ -64,6 +64,10 @@ export interface PackerAmiBuild {
     path: string;
     tags?: Tag[];
 }
+/**
+* Interface of a the PackerAmi instance that generates
+* the packer file and it's build assets
+*/
 export declare abstract class IPackerAmi {
     /**
      *  Method for an AMI to get its default AMI ID to use
@@ -71,10 +75,23 @@ export declare abstract class IPackerAmi {
      * @param region
      */
     abstract getAmiId(region: Regions): Promise<string>;
+    /**
+     * Generate build assets
+     */
     abstract generate(region: Regions, path?: string): Promise<PackerAmiBuild>;
 }
 export interface AmiQueuedBuild {
     packerAmi: IPackerAmi;
     name: string;
     region: Regions;
+}
+export interface AmiBuildRunnerProps {
+    verbose?: boolean;
+    markAmiActive?: boolean;
+    isActive?: boolean;
+    isStarted?: boolean;
+    currentLogLine?: string;
+    logLine?: string;
+    logTarget?: string;
+    logType?: string;
 }

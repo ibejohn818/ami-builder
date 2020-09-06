@@ -3,7 +3,8 @@ import * as builder from './builder'
 import * as fs from 'fs'
 import { AmiTagger } from '../ami/tagger'
 import {
-    PackerAmiBuild
+    PackerAmiBuild,
+    AmiBuildRunnerProps,
 } from '../types'
 
 class Logger {
@@ -35,6 +36,8 @@ class Logger {
 
 }
 
+
+
 export class AmiBuildRunner {
 
     public static packerExe: string = "packer"
@@ -43,13 +46,37 @@ export class AmiBuildRunner {
 
     private _task: PackerAmiBuild
     private _proc: cp.ChildProcess | undefined = undefined
+    private _props: AmiBuildRunnerProps
+    private _newAmiId?: string
     private idFound: boolean = false
+    private msgData: string = ""
+    private msgTarget: string = ""
+    private msgType: string = ""
 
-    constructor(task: PackerAmiBuild) {
+    constructor(task: PackerAmiBuild, props?: AmiBuildRunnerProps) {
         this._task = task
+        this._props = props ?? {}
     }
 
+    public get props(): AmiBuildRunnerProps {
+        return this._props
+    }
 
+    public get task(): PackerAmiBuild {
+        return this._task
+    }
+
+    public get newAmiId(): string | undefined {
+        return this._newAmiId
+    }
+
+    public get consoleAmiLink(): string {
+        // https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=owned-by-me;search=ami-07badf6f66dacbc7a;sort=name
+        let uri = `https://${this.task.region}.console.aws.amazon.com`
+        uri += `/ec2/v2/home?region=${this.task.region}`
+        uri += `#Images:visibility=owned-by-me;search=${this._newAmiId}`
+        return uri
+    }
     public async execute() {
 
         let args = AmiBuildRunner.packerOps.concat(
@@ -58,24 +85,26 @@ export class AmiBuildRunner {
         let proc = cp.spawn(cmd, args, {shell: true})
         let log = new Logger(this._task)
 
+        this.props.isStarted = true
+        this.props.isActive = true
+
         proc.stdout.on('data', (data) => {
             let line = `${data}`
             log.write(line)
             this.parseLine(line)
-            console.log(line.replace(/\n$/, ''))
+            line = line.replace(/\n$/, '')
+            this._props.currentLogLine = line
+            //console.log(line)
         })
 
-
         proc.on('disconnect', () => {
-            console.log("PROC EXIT")
             log.close()
             proc.kill()
         })
 
         proc.on('exit', () => {
+            this.props.isActive = false
             log.close()
-            console.log("PROC EXIT")
-
         })
 
         this._proc = proc
@@ -95,10 +124,9 @@ export class AmiBuildRunner {
         const target = l[1].trim()
         const type = l[2].trim()
         const data = l.splice(3, (l.length - 1)).join(" ").trim()
-
-        console.log("Target: ", target)
-        console.log("Type: ", type)
-        console.log("Data: ", data)
+        this._props.logTarget = target
+        this._props.logLine = this.formatPackerData(data)
+        this._props.logType = type
 
         switch (target) {
 
@@ -109,6 +137,11 @@ export class AmiBuildRunner {
         }
 
         return out
+    }
+
+    private formatPackerData(data: string): string {
+        data = data.replace("%!(PACKER_COMMA)", ",")
+        return data
     }
 
     private parseSay(sayIn: string[]): string {
@@ -136,17 +169,18 @@ export class AmiBuildRunner {
             if (res === null) {
                 return
             }
-            let id = `${res[5]}${res[6]}${res[7]}`
+
+            this._newAmiId = `${res[5]}${res[6]}${res[7]}`
+
             let tagger = new AmiTagger(
                 this._task.region,
                 this._task.name,
-                id
+                this._newAmiId
             )
             await tagger.setTags()
-            console.log("AMI Tagged: ", id)
-            console.log("LINE: ", data)
             this.idFound = true
         }
     }
     
+
 }

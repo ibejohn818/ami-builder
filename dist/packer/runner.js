@@ -42,30 +42,53 @@ class Logger {
     }
 }
 class AmiBuildRunner {
-    constructor(task) {
+    constructor(task, props) {
         this._proc = undefined;
         this.idFound = false;
+        this.msgData = "";
+        this.msgTarget = "";
+        this.msgType = "";
         this._task = task;
+        this._props = props !== null && props !== void 0 ? props : {};
+    }
+    get props() {
+        return this._props;
+    }
+    get task() {
+        return this._task;
+    }
+    get newAmiId() {
+        return this._newAmiId;
+    }
+    get consoleAmiLink() {
+        // https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=owned-by-me;search=ami-07badf6f66dacbc7a;sort=name
+        let uri = `https://${this.task.region}.console.aws.amazon.com`;
+        uri += `/ec2/v2/home?region=${this.task.region}`;
+        uri += `#Images:visibility=owned-by-me;search=${this._newAmiId}`;
+        return uri;
     }
     async execute() {
         let args = AmiBuildRunner.packerOps.concat(AmiBuildRunner.packerExtraOps);
         let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `;
         let proc = cp.spawn(cmd, args, { shell: true });
         let log = new Logger(this._task);
+        this.props.isStarted = true;
+        this.props.isActive = true;
         proc.stdout.on('data', (data) => {
             let line = `${data}`;
             log.write(line);
             this.parseLine(line);
-            console.log(line.replace(/\n$/, ''));
+            line = line.replace(/\n$/, '');
+            this._props.currentLogLine = line;
+            //console.log(line)
         });
         proc.on('disconnect', () => {
-            console.log("PROC EXIT");
             log.close();
             proc.kill();
         });
         proc.on('exit', () => {
+            this.props.isActive = false;
             log.close();
-            console.log("PROC EXIT");
         });
         this._proc = proc;
     }
@@ -80,15 +103,19 @@ class AmiBuildRunner {
         const target = l[1].trim();
         const type = l[2].trim();
         const data = l.splice(3, (l.length - 1)).join(" ").trim();
-        console.log("Target: ", target);
-        console.log("Type: ", type);
-        console.log("Data: ", data);
+        this._props.logTarget = target;
+        this._props.logLine = this.formatPackerData(data);
+        this._props.logType = type;
         switch (target) {
             case "amazon-ebs":
                 this.parseAmiId(data);
                 break;
         }
         return out;
+    }
+    formatPackerData(data) {
+        data = data.replace("%!(PACKER_COMMA)", ",");
+        return data;
     }
     parseSay(sayIn) {
         let o = "";
@@ -110,11 +137,9 @@ class AmiBuildRunner {
             if (res === null) {
                 return;
             }
-            let id = `${res[5]}${res[6]}${res[7]}`;
-            let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, id);
+            this._newAmiId = `${res[5]}${res[6]}${res[7]}`;
+            let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, this._newAmiId);
             await tagger.setTags();
-            console.log("AMI Tagged: ", id);
-            console.log("LINE: ", data);
             this.idFound = true;
         }
     }

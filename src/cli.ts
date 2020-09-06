@@ -16,6 +16,9 @@ import * as cli_menus from './cli/menus'
 import * as readline from 'readline'
 import * as os from 'os'
 import * as help_txt from './cli/help'
+import * as buildui from './cli/buildui'
+
+const jetty = require("jetty")
 const chalk = require("chalk")
 
 const handleList = (csv: string): string[] => {
@@ -67,113 +70,113 @@ program.command("list")
 
 program.command('test')
 .action(async () => {
-	//let res = await cdk.AmiMapper.map("Web", Regions.USWEST2)
-	console.log(await cdk.AmiMapper.map("WebPython3", Regions.USWEST2))
-	console.log(await cdk.AmiMapper.map("BastionNat", Regions.USWEST2))
-
-	// let at = new tagger.AmiBuilder.AmiTagger(
-	//   Regions.USWEST2,
-	//   "Web",
-	//   "ami-0874c2497a84da9fb"
-	// )
-	// await at.setTags()
-	// await at.getTags()
-	//    const ls = await child.spawn( 'packer', [] );
-
-	//     ls.stdout.on( 'data', data => {
-	//         console.log( `stdout: ${data}` );
-	//     } );
-
-	//     ls.stderr.on( 'data', data => {
-	//         console.log( `stderr: ${data}` );
-	//     } );
-
-	//     ls.on( 'close', code => {
-	//         console.log( `child process exited with code ${code}` );
-	//     } ); 
-	//try {
-
-	//let prompt = inquirer.createPromptModule();
-	//let questions = [
-	//{
-	//type: 'checkbox',
-	//name: 'test',
-	//choices: PackerBuilder.inquirerlist(),
-	//message: 'testing message'
-
-	//}
-	//]
-	//prompt(questions).then(
-	//(r) => {
-	//console.log(r)
-	//}
-	//);
-	//} catch (error) {
-
-	//console.log("ERR", error)
-	//}
 
 })
 
 program.command('build')
 .arguments("<buildjs> [names...]")
 .option('-y, --yes', "Bypass yes confirmation", false)
+.option('--no-build', "Do not build, only generate build assets", false)
 .option('-a, --activate', "Set build(s) as active")
 .action(async (cmd, names, ops) => {
 
 	// flags
-	let activate = (ops.activate) ? true: false
-	let yes = (ops.yes) ? true: false
+	var activate = (ops.activate) ? true: false
+	var yes = (ops.yes) ? true: false
+	var nobuild = (ops.no_build) ? true: false
+    var buildQueue: AmiQueuedBuild[] = []
+    var buildsInProgress: Array<runner.AmiBuildRunner> = []
 
 	let p = path.resolve(path.normalize(cmd))
-	console.log(chalk.green(p))
-	import(p).then(async (res) => {
 
-		// gather the builds in queue
-		let builds = AmiBuildQueue.bootstrap()
+    // load the build file
+    try {
+        await import(p)
+    } catch (err) {
+		console.log("ERROR: ", chalk.red(err))
+        process.exit(1)
+    }
 
-		// build storage
-		let r: AmiQueuedBuild[] = []
+    // gather the builds in queue
+    let builds = AmiBuildQueue.bootstrap()
 
-		// check if we have a fuzzy search
-		if (names.length > 0) {
-			r = cli_menus.fuzzyFilter(builds, names)
-			let msg = ""
-			for (var i in r)
-				msg += chalk.cyan(`${r[i].name} [${r[i].region}] `)
-			console.log(msg)
-		} else { // no show a select menu
-			r = await cli_menus.amiCheckbox(builds)
-		}
+    // build storage
 
-		// if we have no builds exit
-		if (r.length <= 0) {
-			console.log(chalk.bold.blue("No builds selected"))
-			process.exit(-1)
-		}
+    // check if we have a fuzzy search
+    if (names.length > 0) {
+        buildQueue = cli_menus.fuzzyFilter(builds, names)
+        let msg = ""
+        for (var i in buildQueue)
+            msg += chalk.cyan(`${buildQueue[i].name} [${buildQueue[i].region}] `)
+        if (msg.length > 0)
+            console.log(msg)
+        else
+            console.log(chalk.red("Filter yielded no builds"))
+    } else { // no show a select menu
+        buildQueue = await cli_menus.amiCheckbox(builds)
+    }
 
-		console.log(chalk.bold.green(`${r.length} build(s) selected.`))
+    // if we have no builds exit
+    if (buildQueue.length <= 0) {
+        console.log(chalk.bold.blue("No builds selected"))
+        process.exit(-1)
+    }
 
-		let ans = (yes) ? true: await cli_menus.confirm()
+    console.log(chalk.bold.green(`${buildQueue.length} build(s) selected.`))
 
-		if (!ans) {
-			return
-		}
+    let ans = (yes) ? true: await cli_menus.confirm()
+
+    if (!ans) {
+        return
+    }
+
+    if (buildQueue.length > 0) {
+
+        buildQueue.forEach(async (v) => {
+            let t = await v.packerAmi.generate(v.region)
+            let b = new runner.AmiBuildRunner(t, {
+                isActive: true,
+                isStarted: true
+            })
+            buildsInProgress.push(b)
+            b.execute()
+        })
+
+        console.log("HERERER WE ARE: ", buildsInProgress)
+
+    }
+
+    buildui.clearTerminal()
+    console.log("Builds are starting....")
+
+    process.stdout.on('resize', function () {
+        buildui.clearTerminal()
+    })
+
+    setInterval(() => {
+
+        if (buildsInProgress.length < buildQueue.length) {
+            return
+        }
+        buildui.drawBuildInterval(buildsInProgress)
+
+        let completed = true
+
+        buildsInProgress.forEach((v) => {
+            if (v.props.isActive) {
+                completed = false
+            }
+        })
+
+        if (completed) {
+            process.exit(0)
+        }
 
 
-		if (r.length > 0) {
+    }, 1000)
 
-			r.forEach(async (v) => {
-				let t = await v.packerAmi.generate(v.region)
-				let b = new runner.AmiBuildRunner(t)
-				b.execute()
-			})
 
-		}
-
-	}).catch((err) => {
-		console.log("ERROR: ", chalk.red(err.message))
-	})
+    console.log("Builds completed")
 
 
 })
@@ -242,16 +245,19 @@ program.command("inspect")
 
 })
 
+/*
 program.command("delete")
 .arguments("<buildjs>")
 .action(async (build) => {
 
 })
+*/
 
 program.command("prune")
-.description("Remove all in-active AMI's. Will not remove if an AMI is in-use")
+.description("Remove all in-active AMI's. Will not remove if an AMI is in-use. Use -a/--all flag to delete all")
 .arguments("<buildjs>")
-.action(async (build) => {
+.option('-a, --all', "Delete all even if active or in-use", false)
+.action(async (build, ops) => {
 	const buildPath = path.resolve(build)
 	await import(buildPath)
 	const builds = AmiBuildQueue.bootstrap()
@@ -259,7 +265,7 @@ program.command("prune")
 
 	res.forEach(async (v) => {
 		let ls = new tagger.AmiList(v.name, v.region)
-		let del = await ls.getInActiveAmis()
+		let del = (ops.all) ? await ls.getAmis():await ls.getInActiveAmis()
 		del.forEach(async (vv) => {
 			let tmpAmi = new tagger.AmiTagger(vv.region,
 											  vv.name,

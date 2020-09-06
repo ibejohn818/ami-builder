@@ -36,6 +36,10 @@ class Provisioner {
     }
 }
 exports.Provisioner = Provisioner;
+/**
+* Interface of a the PackerAmi instance that generates
+* the packer file and it's build assets
+*/
 class IPackerAmi {
 }
 exports.IPackerAmi = IPackerAmi;
