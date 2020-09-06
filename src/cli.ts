@@ -231,6 +231,10 @@ program.command("inspect")
 										chalk.green(i.name),
 										"[" + chalk.blue(i.id) + "]"
 									   )
+                            console.log("          Launched: ",
+                                        chalk.blue(i.launchTime)
+                                       )
+
 						})
 					}
 

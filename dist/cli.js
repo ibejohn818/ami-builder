@@ -190,6 +190,7 @@ program.command("inspect")
             console.log("     ", chalk.cyan("Deployed Instances"));
             v.activeInstances.forEach((i) => {
                 console.log("       - ", chalk.green(i.name), "[" + chalk.blue(i.id) + "]");
+                console.log("          Launched: ", chalk.blue(i.launchTime));
             });
         }
     });

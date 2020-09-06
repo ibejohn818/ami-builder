@@ -15,6 +15,7 @@ export interface AmiBuildImage {
 export interface AmiActiveInstances {
     id: string;
     name: string;
+    launchTime: string;
 }
 export interface AmiBuildImageInspect extends AmiBuildImage {
     activeInstances: AmiActiveInstances[];

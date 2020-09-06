@@ -221,7 +221,7 @@ class AmiList extends AmiBase {
                 inst = inst.concat(t);
             });
             for (var ii in inst) {
-                console.log("Instance: ", inst[i]);
+                //console.log("Instance: ", inst[i])
                 let t = this.extractNameTag(inst[ii]);
                 a.push(t);
             }
@@ -234,8 +234,10 @@ class AmiList extends AmiBase {
      *
      */
     extractNameTag(inst) {
+        var _a;
         let name = "";
         let id = (inst.InstanceId) ? inst.InstanceId : "";
+        let launchTime = (_a = String(inst.LaunchTime)) !== null && _a !== void 0 ? _a : "";
         let tags = (inst.Tags) ? inst.Tags : [];
         for (var i in tags) {
             let t = tags[i];
@@ -246,6 +248,7 @@ class AmiList extends AmiBase {
         return {
             id,
             name,
+            launchTime
         };
     }
     /**

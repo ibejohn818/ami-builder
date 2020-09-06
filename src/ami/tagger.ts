@@ -31,7 +31,8 @@ export interface AmiBuildImage {
 
 export interface AmiActiveInstances {
     id: string
-    name: string
+    name: string,
+    launchTime: string,
 }
 
 export interface AmiBuildImageInspect extends AmiBuildImage {
@@ -334,7 +335,7 @@ export class AmiList extends AmiBase {
             })
 
             for (var ii in inst) {
-                console.log("Instance: ", inst[i])
+                //console.log("Instance: ", inst[i])
                 let t = this.extractNameTag(inst[ii])
                 a.push(t)
             }
@@ -353,6 +354,7 @@ export class AmiList extends AmiBase {
     private extractNameTag(inst: Instance): AmiActiveInstances {
         let name: string = ""
         let id: string = (inst.InstanceId) ? inst.InstanceId: ""
+        let launchTime: string = String(inst.LaunchTime) ?? ""
         let tags = (inst.Tags) ? inst.Tags: []
 
         for (var i in tags) {
@@ -365,6 +367,7 @@ export class AmiList extends AmiBase {
         return {
             id,
             name,
+            launchTime
         }
 
     }

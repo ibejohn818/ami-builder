@@ -159,7 +159,7 @@ const ubuntu20 = (name) => {
     });
     return ami;
 };
-let web = baseAmi("Web");
+let web = baseAmi("Nat");
 let web2 = baseAmi("StagingWeb");
 //let ubu = ubuntuAmi("WebUbuntu")
 let webPython = pythonAmi("WebPython3");
