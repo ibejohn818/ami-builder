@@ -22,6 +22,18 @@ class Provisioner {
     get name() {
         return this._name;
     }
+    get safeName() {
+        return this._name.replace(' ', '-');
+    }
+    randSeed(length = 16) {
+        let ops = "123456789abcdefghijklmnopqrstuvwxyz";
+        let seed = "";
+        for (var i = 1; i <= length; i++) {
+            var rand = Math.floor(Math.random() * ops.length);
+            seed += ops[rand];
+        }
+        return seed;
+    }
 }
 exports.Provisioner = Provisioner;
 class IPackerAmi {

@@ -51,6 +51,7 @@ export class PackerAmi implements IPackerAmi {
      * Add a provisioner to the AMI
      */
     public addProvisioner(aIndex: number, aProv: Provisioner): Provisioner {
+
         this.provisioners.push({
             index: aIndex,
             provisioner: aProv

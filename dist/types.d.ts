@@ -11,6 +11,8 @@ export declare abstract class Provisioner {
     constructor(aName: string, aProvisionerType: string);
     get provisionerType(): string;
     get name(): string;
+    get safeName(): string;
+    randSeed(length?: number): string;
     abstract generate(region: Regions, path: string): {
         [key: string]: any;
     };

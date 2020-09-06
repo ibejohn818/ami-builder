@@ -28,6 +28,20 @@ export abstract class Provisioner {
         return this._name
     }
 
+    public get safeName(): string {
+        return this._name.replace(' ', '-')
+    }
+
+    public randSeed(length: number = 16): string {
+        let ops = "123456789abcdefghijklmnopqrstuvwxyz"
+        let seed = ""
+        for (var i=1; i<=length; i++) {
+            var rand = Math.floor(Math.random() * ops.length)
+            seed += ops[rand]
+        }
+        return seed
+    }
+
     abstract generate(region: Regions, path: string): {[key: string]: any}
 
 }

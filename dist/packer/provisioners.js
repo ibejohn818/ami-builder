@@ -110,7 +110,7 @@ class AnsibleProvisioner extends types_1.Provisioner {
         //if (this._preTasks.length > 0) {
         //pb.pre_tasks = this._preTasks
         //}
-        let p = path.join(aPath, `playbook-${region}.yaml`);
+        let p = path.join(aPath, `playbook-${this.randSeed()}-${region}.yaml`);
         fs.writeFileSync(p, yaml.dump([pb]));
         return {
             playbook_file: p,

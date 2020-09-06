@@ -43,6 +43,7 @@ export class ShellProvisioner extends Provisioner {
     /**
      * create shell provisioner block
      */
+
     public generate(region: Regions, aPath: string): {[key: string]: any} {
         // add the shebang
         let p = {
@@ -117,7 +118,7 @@ export class AnsibleProvisioner extends Provisioner {
         //pb.pre_tasks = this._preTasks
         //}
 
-        let p = path.join(aPath, `playbook-${region}.yaml`)
+        let p = path.join(aPath, `playbook-${this.randSeed()}-${region}.yaml`)
 
         fs.writeFileSync(p, yaml.dump([pb]))
 

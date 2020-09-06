@@ -157,6 +157,15 @@ const ubuntu20 = (name) => {
         role: "ansible-ohmyzsh",
         index: 40
     });
+    var s = new packer.ShellProvisioner("Tester");
+    s.add("echo 'test'");
+    ami.addProvisioner(10, s);
+    let ans2 = new packer.AnsibleProvisioner("Ansible", path.join(os.homedir(), "projects/ansible"));
+    ami.addProvisioner(10, ans2);
+    ans2.addRole({
+        role: "common-pkgs",
+        index: 5,
+    });
     return ami;
 };
 let web = baseAmi("Nat");
