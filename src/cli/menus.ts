@@ -3,7 +3,10 @@ import * as inquirer from 'inquirer'
 import {AmiQueuedBuild} from '../types'
 
 
-export const amiCheckbox = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuild[]> => {
+export const amiCheckbox = async (amis: AmiQueuedBuild[], aMsg?: string): Promise<AmiQueuedBuild[]> => {
+
+    let msg = aMsg ?? 'Select AMIs to build:'
+
     let c: {
         name: string,
         value: AmiQueuedBuild
@@ -19,7 +22,7 @@ export const amiCheckbox = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuil
     let a: {[key: string]: any[]}  = await inquirer.prompt([
         {
             type: 'checkbox',
-            message: 'Select AMIs to build: ',
+            message: msg,
             name: 'amis',
             choices: c
         }
@@ -28,7 +31,10 @@ export const amiCheckbox = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuil
     return a['amis']
 }
 
-export const amiList = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuild> => {
+export const amiList = async (amis: AmiQueuedBuild[], aMsg?: string): Promise<AmiQueuedBuild> => {
+
+    let msg = aMsg ?? "Select an AMI"
+
     let c: {
         name: string,
         value: AmiQueuedBuild
@@ -44,7 +50,7 @@ export const amiList = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuild> =
     let a: {[key: string]: AmiQueuedBuild}  = await inquirer.prompt([
         {
             type: 'list',
-            message: 'Select an AMI',
+            message: msg,
             name: 'amis',
             choices: c
         }
@@ -53,6 +59,9 @@ export const amiList = async (amis: AmiQueuedBuild[]): Promise<AmiQueuedBuild> =
     return a['amis']
 }
 
+/*
+ * Filter ami + region arguments from the cli
+ */
 export const fuzzyFilter = (amis: AmiQueuedBuild[], names: string[]): AmiQueuedBuild[] => {
     let r: AmiQueuedBuild[] = []
 
@@ -65,7 +74,7 @@ export const fuzzyFilter = (amis: AmiQueuedBuild[], names: string[]): AmiQueuedB
             if (/^\^/.test(s)) {
                 p = false
                 s = s.replace(/^(\^)(.*)/, '$2')
-                console.log("NEG: ", s)
+                //console.log("NEG: ", s)
             }
             if (n.indexOf(s) >= 0) {
                 y = p
@@ -79,10 +88,13 @@ export const fuzzyFilter = (amis: AmiQueuedBuild[], names: string[]): AmiQueuedB
     return r
 }
 
+/*
+ * Simple yes/no (y/n) confirmation
+ */
 export const confirm = async (): Promise<boolean> => {
     let a = await inquirer.prompt([{
         type: 'confirm',
-        message: 'you want to proceed?',
+        message: 'Do you wish to proceed?',
         name: 'conf',
         default: false
     }])

@@ -21,7 +21,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.confirm = exports.fuzzyFilter = exports.amiList = exports.amiCheckbox = void 0;
 const inquirer = __importStar(require("inquirer"));
-exports.amiCheckbox = async (amis) => {
+exports.amiCheckbox = async (amis, aMsg) => {
+    let msg = aMsg !== null && aMsg !== void 0 ? aMsg : 'Select AMIs to build:';
     let c = [];
     amis.forEach((v) => {
         c.push({
@@ -32,14 +33,15 @@ exports.amiCheckbox = async (amis) => {
     let a = await inquirer.prompt([
         {
             type: 'checkbox',
-            message: 'Select AMIs to build: ',
+            message: msg,
             name: 'amis',
             choices: c
         }
     ]);
     return a['amis'];
 };
-exports.amiList = async (amis) => {
+exports.amiList = async (amis, aMsg) => {
+    let msg = aMsg !== null && aMsg !== void 0 ? aMsg : "Select an AMI";
     let c = [];
     amis.forEach((v) => {
         c.push({
@@ -50,13 +52,16 @@ exports.amiList = async (amis) => {
     let a = await inquirer.prompt([
         {
             type: 'list',
-            message: 'Select an AMI',
+            message: msg,
             name: 'amis',
             choices: c
         }
     ]);
     return a['amis'];
 };
+/*
+ * Filter ami + region arguments from the cli
+ */
 exports.fuzzyFilter = (amis, names) => {
     let r = [];
     amis.forEach((v) => {
@@ -68,7 +73,7 @@ exports.fuzzyFilter = (amis, names) => {
             if (/^\^/.test(s)) {
                 p = false;
                 s = s.replace(/^(\^)(.*)/, '$2');
-                console.log("NEG: ", s);
+                //console.log("NEG: ", s)
             }
             if (n.indexOf(s) >= 0) {
                 y = p;
@@ -80,10 +85,13 @@ exports.fuzzyFilter = (amis, names) => {
     });
     return r;
 };
+/*
+ * Simple yes/no (y/n) confirmation
+ */
 exports.confirm = async () => {
     let a = await inquirer.prompt([{
             type: 'confirm',
-            message: 'you want to proceed?',
+            message: 'Do you wish to proceed?',
             name: 'conf',
             default: false
         }]);

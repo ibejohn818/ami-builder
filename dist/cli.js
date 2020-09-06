@@ -163,7 +163,6 @@ program.command("inspect")
     .arguments("<buildjs>")
     .description("Inspects a selected ami. Shows all builds, active state and which ami id's have deployed ec2 instances")
     .action(async (build) => {
-    console.log("BUI: ", build);
     let buildPath = path.resolve(build);
     await Promise.resolve().then(() => __importStar(require(buildPath)));
     const builds = builder_1.AmiBuildQueue.bootstrap();
@@ -206,7 +205,7 @@ program.command("prune")
     const buildPath = path.resolve(build);
     await Promise.resolve().then(() => __importStar(require(buildPath)));
     const builds = builder_1.AmiBuildQueue.bootstrap();
-    const res = await cli_menus.amiCheckbox(builds);
+    const res = await cli_menus.amiCheckbox(builds, "Select AMI's to prune:");
     res.forEach(async (v) => {
         let ls = new tagger.AmiList(v.name, v.region);
         let del = await ls.getInActiveAmis();
