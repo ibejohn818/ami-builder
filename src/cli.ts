@@ -18,7 +18,6 @@ import * as os from 'os'
 import * as help_txt from './cli/help'
 import * as buildui from './cli/buildui'
 
-const jetty = require("jetty")
 const chalk = require("chalk")
 
 const handleList = (csv: string): string[] => {
@@ -76,7 +75,7 @@ program.command('test')
 program.command('build')
 .arguments("<buildjs> [names...]")
 .option('-y, --yes', "Bypass yes confirmation", false)
-.option('--no-build', "Do not build, only generate build assets", false)
+.option('-g, --generate-only', "Only generate assets and skip building", false)
 .option('-a, --activate', "Set build(s) as active")
 .action(async (cmd, names, ops) => {
 
@@ -139,10 +138,15 @@ program.command('build')
                 isStarted: true
             })
             buildsInProgress.push(b)
-            b.execute()
+            if (!ops.generateOnly)
+                b.execute()
         })
 
-        console.log("HERERER WE ARE: ", buildsInProgress)
+        if (ops.generateOnly) {
+            console.log("Build assets generating...")
+            console.log("Exiting....")
+            process.exit(0)
+        }
 
     }
 
@@ -174,10 +178,6 @@ program.command('build')
 
 
     }, 1000)
-
-
-    console.log("Builds completed")
-
 
 })
 .on("--help", () => {

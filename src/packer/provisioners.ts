@@ -6,6 +6,7 @@ import {
     Provisioner,
     AnsibleRole,
     PlaybookJson,
+    PlaybookTaskBlock,
     Regions,
 } from '../types'
 
@@ -43,8 +44,9 @@ export class ShellProvisioner extends Provisioner {
     /**
      * create shell provisioner block
      */
-
-    public generate(region: Regions, aPath: string): {[key: string]: any} {
+    public async generate_asset(index: number,
+                          region: Regions,
+                          aPath: string): Promise<{[key: string]: any}> {
         // add the shebang
         let p = {
             type: this.provisionerType,
@@ -65,12 +67,16 @@ export class AnsibleProvisioner extends Provisioner {
      * The path to the ansible roles used by this provisioner
      */
     private _pathToRoles: string
-    private _roles: Array<AnsibleRole> = []
-    private _postTasks: any[] = []
+    private _roles: AnsibleRole[] = []
+    private _postTasks: PlaybookTaskBlock[] = []
+    private _preTasks: PlaybookTaskBlock[] = []
+    private _tasks: PlaybookTaskBlock[] = []
+    /*
     private _preTasks: any[] = [{
         name: 'something something',
         set_facts: "some fact"
     }]
+    */
 
     constructor(aName: string, aPathToRoles: string) {
         super(aName, "ansible-local")
@@ -78,6 +84,43 @@ export class AnsibleProvisioner extends Provisioner {
         // set the path to roles location
         this._pathToRoles = aPathToRoles
     }
+
+    public appendTasks(tasks: PlaybookTaskBlock) {
+        this._tasks.push(tasks)
+    }
+
+    public appendPostTasks(tasks: PlaybookTaskBlock) {
+        this._postTasks.push(tasks)
+    }
+
+    public appendPreTasks(tasks: PlaybookTaskBlock) {
+        this._preTasks.push(tasks)
+    }
+
+    public set tasks(tasks: PlaybookTaskBlock[]) {
+        this._tasks = tasks
+    }
+
+    public set preTasks(tasks: PlaybookTaskBlock[]) {
+        this._preTasks = tasks
+    }
+
+    public set postTasks(tasks: PlaybookTaskBlock[]) {
+        this._postTasks = tasks
+    }
+
+    public get preTasks(): PlaybookTaskBlock[] {
+        return this._preTasks 
+    }
+
+    public get postTasks(): PlaybookTaskBlock[] {
+        return this._postTasks
+    }
+
+    public get tasks(): PlaybookTaskBlock[] {
+        return this._tasks
+    }
+
 
     public get pathToRoles(): string {
         return this._pathToRoles
@@ -87,8 +130,9 @@ export class AnsibleProvisioner extends Provisioner {
         this._roles.push(role)
     }
 
-
-    public generate(region: Regions, aPath: string): {[key: string]: any} {
+    public async generate_asset(index: number,
+                          region: Regions,
+                          aPath: string): Promise<{[key: string]: any}> {
 
         let pb: PlaybookJson = {
             become: true,
@@ -97,6 +141,19 @@ export class AnsibleProvisioner extends Provisioner {
             name: this.name,
             roles: []
         }
+
+        if (this._preTasks.length > 0) {
+            pb.pre_tasks = this._preTasks
+        }
+
+        if (this._postTasks.length > 0) {
+            pb.post_tasks = this._postTasks
+        }
+
+        if (this._tasks.length > 0) {
+            pb.tasks = this._tasks
+        }
+
         // sort roles
         this._roles.sort((a: AnsibleRole, b: AnsibleRole) => (a.index > b.index) ? 1:-1)
 
@@ -114,14 +171,10 @@ export class AnsibleProvisioner extends Provisioner {
 
         }
 
-        //if (this._preTasks.length > 0) {
-        //pb.pre_tasks = this._preTasks
-        //}
 
-        let p = path.join(aPath, `playbook-${this.randSeed()}-${region}.yaml`)
+        let p = path.join(aPath, `playbook-${index}-${region}.yaml`)
 
-        fs.writeFileSync(p, yaml.dump([pb]))
-
+        await fs.writeFileSync(p, yaml.dump([pb]))
 
         return {
             playbook_file: p,

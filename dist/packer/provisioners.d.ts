@@ -1,4 +1,4 @@
-import { Provisioner, AnsibleRole, Regions } from '../types';
+import { Provisioner, AnsibleRole, PlaybookTaskBlock, Regions } from '../types';
 /**
  * Represents a packer shell provisioner
  *
@@ -17,9 +17,9 @@ export declare class ShellProvisioner extends Provisioner {
     /**
      * create shell provisioner block
      */
-    generate(region: Regions, aPath: string): {
+    generate_asset(index: number, region: Regions, aPath: string): Promise<{
         [key: string]: any;
-    };
+    }>;
 }
 /**
  * Represents an ansible-local packer provisioner
@@ -32,10 +32,20 @@ export declare class AnsibleProvisioner extends Provisioner {
     private _roles;
     private _postTasks;
     private _preTasks;
+    private _tasks;
     constructor(aName: string, aPathToRoles: string);
+    appendTasks(tasks: PlaybookTaskBlock): void;
+    appendPostTasks(tasks: PlaybookTaskBlock): void;
+    appendPreTasks(tasks: PlaybookTaskBlock): void;
+    set tasks(tasks: PlaybookTaskBlock[]);
+    set preTasks(tasks: PlaybookTaskBlock[]);
+    set postTasks(tasks: PlaybookTaskBlock[]);
+    get preTasks(): PlaybookTaskBlock[];
+    get postTasks(): PlaybookTaskBlock[];
+    get tasks(): PlaybookTaskBlock[];
     get pathToRoles(): string;
     addRole(role: AnsibleRole): void;
-    generate(region: Regions, aPath: string): {
+    generate_asset(index: number, region: Regions, aPath: string): Promise<{
         [key: string]: any;
-    };
+    }>;
 }

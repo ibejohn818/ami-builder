@@ -7,48 +7,14 @@ export enum Regions {
     USEAST2 = "us-east-2"
 }
 
-/*
- * Packer provisioner implementation
- */
-export abstract class Provisioner {
-
-    protected _name: string
-    protected _provisionerType: string
-
-    constructor(aName: string, aProvisionerType: string) {
-        this._name = aName
-        this._provisionerType = aProvisionerType
-    }
-
-    public get provisionerType(): string {
-        return this._provisionerType
-    }
-
-    public get name(): string {
-        return this._name
-    }
-
-    public get safeName(): string {
-        return this._name.replace(' ', '-')
-    }
-
-    public randSeed(length: number = 16): string {
-        let ops = "123456789abcdefghijklmnopqrstuvwxyz"
-        let seed = ""
-        for (var i=1; i<=length; i++) {
-            var rand = Math.floor(Math.random() * ops.length)
-            seed += ops[rand]
-        }
-        return seed
-    }
-
-    abstract generate(region: Regions, path: string): {[key: string]: any}
-
+export interface PackerAmiProvisionerAsset {
+    path: string
 }
 
 export interface PackerAmiProvisioner {
    index: number
    provisioner: Provisioner
+   assets?: PackerAmiProvisionerAsset[]
 }
 
 export interface AmiId  {
@@ -82,14 +48,14 @@ export interface AnsibleRole {
  * TODO: implement out the weak "any" types
  */
 export interface PlaybookJson {
-
     become: boolean
     become_method: string
     hosts: string
     name: string
     roles: any[]
     pre_tasks?: any[]
-
+    post_tasks?: any[]
+    tasks?: any[]
 }
 
 export interface PackerAmiBuild {
@@ -98,6 +64,7 @@ export interface PackerAmiBuild {
     packerFile: string
     path: string
     tags?: Tag[]
+
 }
 
 /**
@@ -133,4 +100,45 @@ export interface AmiBuildRunnerProps {
     logLine?: string
     logTarget?: string
     logType?: string
+}
+
+export type PlaybookTaskBlock = {[key: string]: any}
+
+/*
+ * Packer provisioner implementation
+ */
+export abstract class Provisioner {
+
+    protected _name: string
+    protected _provisionerType: string
+
+    constructor(aName: string, aProvisionerType: string) {
+        this._name = aName
+        this._provisionerType = aProvisionerType
+    }
+
+    public get provisionerType(): string {
+        return this._provisionerType
+    }
+
+    public get name(): string {
+        return this._name
+    }
+
+    public get safeName(): string {
+        return this._name.replace(' ', '-')
+    }
+
+    public randSeed(length: number = 16): string {
+        let ops = "123456789abcdefghijklmnopqrstuvwxyz"
+        let seed = ""
+        for (var i=1; i<=length; i++) {
+            var rand = Math.floor(Math.random() * ops.length)
+            seed += ops[rand]
+        }
+        return seed
+    }
+
+    abstract generate_asset(index: number,region: Regions, path: string): Promise<{[key: string]: any}>
+
 }

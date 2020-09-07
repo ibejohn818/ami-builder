@@ -54,7 +54,7 @@ class ShellProvisioner extends types_1.Provisioner {
     /**
      * create shell provisioner block
      */
-    generate(region, aPath) {
+    async generate_asset(index, region, aPath) {
         // add the shebang
         let p = {
             type: this.provisionerType,
@@ -68,16 +68,47 @@ exports.ShellProvisioner = ShellProvisioner;
  * Represents an ansible-local packer provisioner
  */
 class AnsibleProvisioner extends types_1.Provisioner {
+    /*
+    private _preTasks: any[] = [{
+        name: 'something something',
+        set_facts: "some fact"
+    }]
+    */
     constructor(aName, aPathToRoles) {
         super(aName, "ansible-local");
         this._roles = [];
         this._postTasks = [];
-        this._preTasks = [{
-                name: 'something something',
-                set_facts: "some fact"
-            }];
+        this._preTasks = [];
+        this._tasks = [];
         // set the path to roles location
         this._pathToRoles = aPathToRoles;
+    }
+    appendTasks(tasks) {
+        this._tasks.push(tasks);
+    }
+    appendPostTasks(tasks) {
+        this._postTasks.push(tasks);
+    }
+    appendPreTasks(tasks) {
+        this._preTasks.push(tasks);
+    }
+    set tasks(tasks) {
+        this._tasks = tasks;
+    }
+    set preTasks(tasks) {
+        this._preTasks = tasks;
+    }
+    set postTasks(tasks) {
+        this._postTasks = tasks;
+    }
+    get preTasks() {
+        return this._preTasks;
+    }
+    get postTasks() {
+        return this._postTasks;
+    }
+    get tasks() {
+        return this._tasks;
     }
     get pathToRoles() {
         return this._pathToRoles;
@@ -85,7 +116,7 @@ class AnsibleProvisioner extends types_1.Provisioner {
     addRole(role) {
         this._roles.push(role);
     }
-    generate(region, aPath) {
+    async generate_asset(index, region, aPath) {
         let pb = {
             become: true,
             become_method: 'sudo',
@@ -93,6 +124,15 @@ class AnsibleProvisioner extends types_1.Provisioner {
             name: this.name,
             roles: []
         };
+        if (this._preTasks.length > 0) {
+            pb.pre_tasks = this._preTasks;
+        }
+        if (this._postTasks.length > 0) {
+            pb.post_tasks = this._postTasks;
+        }
+        if (this._tasks.length > 0) {
+            pb.tasks = this._tasks;
+        }
         // sort roles
         this._roles.sort((a, b) => (a.index > b.index) ? 1 : -1);
         for (var i in this._roles) {
@@ -107,11 +147,8 @@ class AnsibleProvisioner extends types_1.Provisioner {
                 });
             }
         }
-        //if (this._preTasks.length > 0) {
-        //pb.pre_tasks = this._preTasks
-        //}
-        let p = path.join(aPath, `playbook-${this.randSeed()}-${region}.yaml`);
-        fs.writeFileSync(p, yaml.dump([pb]));
+        let p = path.join(aPath, `playbook-${index}-${region}.yaml`);
+        await fs.writeFileSync(p, yaml.dump([pb]));
         return {
             playbook_file: p,
             playbook_dir: this.pathToRoles,

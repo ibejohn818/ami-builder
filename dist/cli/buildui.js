@@ -20,7 +20,7 @@ exports.drawBuildInterval = (builds) => {
     let out = [];
     // draw header
     out.push(hr(cols));
-    out.push(`Building ${builds.length} AMI(s) | ${rows} | ${cols} | c: ${count}`);
+    out.push(`Building ${builds.length} AMI(s) debug(${rows}|${cols}|${count})`);
     out.push(hr(cols));
     builds.forEach((v) => {
         out = out.concat(drawAmiLine(v, cols));
@@ -33,9 +33,9 @@ exports.drawBuildInterval = (builds) => {
     // figure out size from bottom
     let rowStart = (ch > rows) ? 0 : (rows - ch);
     // check if we need to clear last
-    if (rowStart > lastStart) {
-        exports.clearTerminal();
+    if (rowStart < lastStart) {
     }
+    exports.clearTerminal();
     lastStart = out.length;
     // debug row starting position - add +1 to above ch var
     //out.push("Row Start: " + rowStart)

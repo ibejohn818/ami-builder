@@ -83,6 +83,15 @@ const pythonAmi = (name) => {
             ]
         }
     });
+    ans.preTasks = [
+        {
+            set_fact: {
+                tester: 'testing'
+            }
+        }
+    ];
+    ami.addProvisioner(1, ans);
+    ami.addProvisioner(1, ans);
     ans.addRole({
         role: "ansible-ohmyzsh",
         index: 40

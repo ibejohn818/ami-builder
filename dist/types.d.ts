@@ -5,21 +5,13 @@ export declare enum Regions {
     USEAST1 = "us-east-1",
     USEAST2 = "us-east-2"
 }
-export declare abstract class Provisioner {
-    protected _name: string;
-    protected _provisionerType: string;
-    constructor(aName: string, aProvisionerType: string);
-    get provisionerType(): string;
-    get name(): string;
-    get safeName(): string;
-    randSeed(length?: number): string;
-    abstract generate(region: Regions, path: string): {
-        [key: string]: any;
-    };
+export interface PackerAmiProvisionerAsset {
+    path: string;
 }
 export interface PackerAmiProvisioner {
     index: number;
     provisioner: Provisioner;
+    assets?: PackerAmiProvisionerAsset[];
 }
 export interface AmiId {
     id?: string;
@@ -56,6 +48,8 @@ export interface PlaybookJson {
     name: string;
     roles: any[];
     pre_tasks?: any[];
+    post_tasks?: any[];
+    tasks?: any[];
 }
 export interface PackerAmiBuild {
     name: string;
@@ -94,4 +88,19 @@ export interface AmiBuildRunnerProps {
     logLine?: string;
     logTarget?: string;
     logType?: string;
+}
+export declare type PlaybookTaskBlock = {
+    [key: string]: any;
+};
+export declare abstract class Provisioner {
+    protected _name: string;
+    protected _provisionerType: string;
+    constructor(aName: string, aProvisionerType: string);
+    get provisionerType(): string;
+    get name(): string;
+    get safeName(): string;
+    randSeed(length?: number): string;
+    abstract generate_asset(index: number, region: Regions, path: string): Promise<{
+        [key: string]: any;
+    }>;
 }

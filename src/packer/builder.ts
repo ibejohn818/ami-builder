@@ -52,6 +52,21 @@ export class PackerAmi implements IPackerAmi {
      */
     public addProvisioner(aIndex: number, aProv: Provisioner): Provisioner {
 
+        let idxChk = true
+
+        while (idxChk) {
+            idxChk = false
+            this.provisioners.forEach((v) => {
+                // check if index matches
+                // if so increment and reset
+                // loop to check again
+                if (v.index == aIndex) {
+                    aIndex++
+                    idxChk = true
+                }
+            })
+        }
+
         this.provisioners.push({
             index: aIndex,
             provisioner: aProv
@@ -148,7 +163,6 @@ export class PackerAmi implements IPackerAmi {
      */
     public async writeAssets(region: Regions): Promise<string> {
         let p = path.join(this.buildPath, `packer-${region}.json` ) 
-        console.log("File Path:", p)
 
         // sort the provisioners
         this.provisioners.sort((a: PackerAmiProvisioner, b: PackerAmiProvisioner) => {
@@ -157,11 +171,13 @@ export class PackerAmi implements IPackerAmi {
 
         for (var i in this.provisioners) {
             let pv = this.provisioners[i]
-            if (!(pv.provisioner instanceof prov.ShellProvisioner)) {
-                //    continue
-            }
 
-            this.packerJson.provisioners.push(pv.provisioner.generate(region, this.buildPath))
+            let res = await pv.provisioner.generate_asset(
+                        pv.index,
+                        region,
+                        this.buildPath
+                    )
+            this.packerJson.provisioners.push(res)
 
         }
         const res = fs.writeFileSync(p, JSON.stringify(this.packerJson, null, 4))

@@ -29,7 +29,6 @@ const tagger = __importStar(require("./ami/tagger"));
 const cli_menus = __importStar(require("./cli/menus"));
 const help_txt = __importStar(require("./cli/help"));
 const buildui = __importStar(require("./cli/buildui"));
-const jetty = require("jetty");
 const chalk = require("chalk");
 const handleList = (csv) => {
     return csv.split(",");
@@ -72,7 +71,7 @@ program.command('test')
 program.command('build')
     .arguments("<buildjs> [names...]")
     .option('-y, --yes', "Bypass yes confirmation", false)
-    .option('--no-build', "Do not build, only generate build assets", false)
+    .option('-g, --generate-only', "Only generate assets and skip building", false)
     .option('-a, --activate', "Set build(s) as active")
     .action(async (cmd, names, ops) => {
     // flags
@@ -125,9 +124,14 @@ program.command('build')
                 isStarted: true
             });
             buildsInProgress.push(b);
-            b.execute();
+            if (!ops.generateOnly)
+                b.execute();
         });
-        console.log("HERERER WE ARE: ", buildsInProgress);
+        if (ops.generateOnly) {
+            console.log("Build assets generating...");
+            console.log("Exiting....");
+            process.exit(0);
+        }
     }
     buildui.clearTerminal();
     console.log("Builds are starting....");
@@ -149,7 +153,6 @@ program.command('build')
             process.exit(0);
         }
     }, 1000);
-    console.log("Builds completed");
 })
     .on("--help", () => {
     help_txt.build.map((v) => {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IPackerAmi = exports.Provisioner = exports.Regions = void 0;
+exports.Provisioner = exports.IPackerAmi = exports.Regions = void 0;
 var Regions;
 (function (Regions) {
     Regions["USWEST1"] = "us-west-1";
@@ -8,6 +8,13 @@ var Regions;
     Regions["USEAST1"] = "us-east-1";
     Regions["USEAST2"] = "us-east-2";
 })(Regions = exports.Regions || (exports.Regions = {}));
+/**
+* Interface of a the PackerAmi instance that generates
+* the packer file and it's build assets
+*/
+class IPackerAmi {
+}
+exports.IPackerAmi = IPackerAmi;
 /*
  * Packer provisioner implementation
  */
@@ -36,11 +43,4 @@ class Provisioner {
     }
 }
 exports.Provisioner = Provisioner;
-/**
-* Interface of a the PackerAmi instance that generates
-* the packer file and it's build assets
-*/
-class IPackerAmi {
-}
-exports.IPackerAmi = IPackerAmi;
 //# sourceMappingURL=types.js.map
