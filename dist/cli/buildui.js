@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearTerminal = exports.chunkString = exports.drawBuildInterval = void 0;
+exports.drawBuildInterval = void 0;
+const uitools_1 = require("./uitools");
 const chalk = require("chalk");
 const VERSION = require("../../package.json").version;
 const formatLabel = (build) => {
@@ -11,7 +12,7 @@ var count = 0;
 var lastStart = 0;
 exports.drawBuildInterval = (builds) => {
     if (count <= 0) {
-        exports.clearTerminal();
+        uitools_1.clearTerminal();
     }
     let so = process.stdout;
     let rows = so.rows;
@@ -19,15 +20,15 @@ exports.drawBuildInterval = (builds) => {
     let version = "## Ami Builder Ver: " + VERSION + " ";
     let out = [];
     // draw header
-    out.push(hr(cols));
+    out.push(uitools_1.hr(cols));
     out.push(`Building ${builds.length} AMI(s) debug(${rows}|${cols}|${count})`);
-    out.push(hr(cols));
+    out.push(uitools_1.hr(cols));
     builds.forEach((v) => {
         out = out.concat(drawAmiLine(v, cols));
     });
-    out.push(hr(cols, "#"));
+    out.push(uitools_1.hr(cols, "#"));
     out.push(version.padEnd(cols, "#"));
-    out.push(hr(cols, "#"));
+    out.push(uitools_1.hr(cols, "#"));
     // content height
     let ch = out.length;
     // figure out size from bottom
@@ -35,7 +36,7 @@ exports.drawBuildInterval = (builds) => {
     // check if we need to clear last
     if (rowStart < lastStart) {
     }
-    exports.clearTerminal();
+    uitools_1.clearTerminal();
     lastStart = out.length;
     // debug row starting position - add +1 to above ch var
     //out.push("Row Start: " + rowStart)
@@ -55,48 +56,34 @@ const drawAmiLine = (build, cols) => {
     if (build.props.isActive) {
         let logLabel = "Log: ";
         let line = chalk.reset(build.props.logLine);
-        let logLines = exports.chunkString(line, (cols + logLabel.length));
+        let logLines = uitools_1.chunkString(line, (cols + logLabel.length));
         logLines[0] = chalk.bold(logLabel) + logLines[0];
         l = l.concat(logLines);
     }
     else if (!build.props.isActive && build.newAmiId) { // completed
         let ami = `New AMI ID: ${chalk.bold.yellow(build.newAmiId)}`;
         let uri = `Console URI: ${build.consoleAmiLink}`;
-        l = l.concat(exports.chunkString(ami, cols));
-        l = l.concat(exports.chunkString(uri, cols));
+        l = l.concat(uitools_1.chunkString(ami, cols));
+        l = l.concat(uitools_1.chunkString(uri, cols));
     }
     else if (!build.props.isActive && ((_a = build.newAmiId) !== null && _a !== void 0 ? _a : false)) { // error
         let msg = `Error occurred during build. View Logs in __packer__/${build.task.name}`;
         msg = chalk.red.bold(msg);
-        let logLines = exports.chunkString(msg, cols);
+        let logLines = uitools_1.chunkString(msg, cols);
         l = l.concat(logLines);
     }
     else { // unknonw error
         let msg = chalk.red.bold("Build has stopped and reached an unknown state");
-        let logLines = exports.chunkString(msg, cols);
+        let logLines = uitools_1.chunkString(msg, cols);
         l = l.concat(logLines);
     }
-    l.push(hr(cols, "_"));
+    l.push(uitools_1.hr(cols, "_"));
     return l;
 };
 const drawHeader = (builds, startRow, cols) => {
     let l = [];
-    hr(cols);
-    hr(cols);
+    uitools_1.hr(cols);
+    uitools_1.hr(cols);
     return [];
-};
-const hr = (length, char = "-") => {
-    return "".padEnd(length, char);
-};
-exports.chunkString = (str, length) => {
-    let res = str.match(new RegExp('.{1,' + length + '}', 'g'));
-    return res;
-};
-exports.clearTerminal = () => {
-    let so = process.stdout;
-    let rows = so.rows;
-    for (var i = 0; i < rows; i++) {
-        so.write("\n");
-    }
 };
 //# sourceMappingURL=buildui.js.map

@@ -138,8 +138,15 @@ class AmiBuildRunner {
                 return;
             }
             this._newAmiId = `${res[5]}${res[6]}${res[7]}`;
+            let tags = [];
+            if (this.props.description) {
+                tags.push({
+                    key: "user:description",
+                    value: this.props.description
+                });
+            }
             let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, this._newAmiId);
-            await tagger.setTags();
+            await tagger.setTags(this.props.promoteActive, tags);
             this.idFound = true;
         }
     }

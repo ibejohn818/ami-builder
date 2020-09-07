@@ -1,18 +1,23 @@
-import { Regions, PackerAmiProvisioner, PackerFileJson, Provisioner, PackerAmiBuild, AmiQueuedBuild, IPackerAmi } from '../types';
-export declare class PackerAmi implements IPackerAmi {
+import { Regions, PackerAmiProvisioner, PackerFileJson, Provisioner, PackerAmiBuild, AmiQueuedBuild, IPackerBuild } from '../types';
+export declare class PackerBuild implements IPackerBuild {
     private _name;
+    protected sshUser: string;
     protected provisioners: Array<PackerAmiProvisioner>;
-    private sshUser;
     protected path: string;
     protected packerJson: PackerFileJson;
     constructor(aName: string, aSshUser: string);
-    getAmiId(region: Regions): Promise<string>;
-    private validateName;
     get name(): string;
+    private validateName;
+    getAmiId(region: Regions): Promise<string>;
+    generate(region: Regions, path?: string): Promise<PackerAmiBuild>;
     /**
      * Add a provisioner to the AMI
      */
     addProvisioner(aIndex: number, aProv: Provisioner): Provisioner;
+}
+export declare class PackerAmi extends PackerBuild {
+    constructor(aName: string, aSshUser: string);
+    getAmiId(region: Regions): Promise<string>;
     prependProvisioner(aProv: Provisioner): Provisioner;
     get buildPath(): string;
     protected generateAmiPath(): void;

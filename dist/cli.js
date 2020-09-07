@@ -29,6 +29,9 @@ const tagger = __importStar(require("./ami/tagger"));
 const cli_menus = __importStar(require("./cli/menus"));
 const help_txt = __importStar(require("./cli/help"));
 const buildui = __importStar(require("./cli/buildui"));
+const editui = __importStar(require("./cli/editui"));
+const uitools = __importStar(require("./cli/uitools"));
+const types_1 = require("./types");
 const chalk = require("chalk");
 const handleList = (csv) => {
     return csv.split(",");
@@ -67,12 +70,19 @@ program.command("list")
 });
 program.command('test')
     .action(async () => {
+    let a = types_1.EditOption.Promote;
+    console.log(types_1.EditOption);
 });
 program.command('build')
     .arguments("<buildjs> [names...]")
     .option('-y, --yes', "Bypass yes confirmation", false)
+    .option('-n, --no', "Do no promote AMI to active status", false)
     .option('-g, --generate-only', "Only generate assets and skip building", false)
+    .option('-d, --description <description>', "A description to store with instance. (Quote string w/space) (200 char limit)")
     .option('-a, --activate', "Set build(s) as active")
+    .on("options:note", (n) => {
+    console.log("NOTE: ", n);
+})
     .action(async (cmd, names, ops) => {
     // flags
     var activate = (ops.activate) ? true : false;
@@ -80,6 +90,7 @@ program.command('build')
     var nobuild = (ops.no_build) ? true : false;
     var buildQueue = [];
     var buildsInProgress = [];
+    var promoteActive = !ops.no;
     let p = path.resolve(path.normalize(cmd));
     // load the build file
     try {
@@ -118,11 +129,16 @@ program.command('build')
     }
     if (buildQueue.length > 0) {
         buildQueue.forEach(async (v) => {
-            let t = await v.packerAmi.generate(v.region);
-            let b = new runner.AmiBuildRunner(t, {
+            let packerBuild = await v.packerAmi.generate(v.region);
+            let buildProps = {
                 isActive: true,
-                isStarted: true
-            });
+                isStarted: true,
+                promoteActive
+            };
+            if (typeof ops.description === "string") {
+                buildProps.description = ops.description;
+            }
+            let b = new runner.AmiBuildRunner(packerBuild, buildProps);
             buildsInProgress.push(b);
             if (!ops.generateOnly)
                 b.execute();
@@ -133,10 +149,10 @@ program.command('build')
             process.exit(0);
         }
     }
-    buildui.clearTerminal();
+    uitools.clearTerminal();
     console.log("Builds are starting....");
     process.stdout.on('resize', function () {
-        buildui.clearTerminal();
+        uitools.clearTerminal();
     });
     setInterval(() => {
         if (buildsInProgress.length < buildQueue.length) {
@@ -174,7 +190,6 @@ program.command("inspect")
         return (a) ? chalk.green("✔") : chalk.red("✘");
     };
     const hr = () => console.log("----------------");
-    const dtfUS = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
     console.log("Name: ", chalk.bold.cyan(res.name));
     console.log("Region: ", chalk.bold.blue(res.region));
     hr();
@@ -185,23 +200,49 @@ program.command("inspect")
         if (v.active) {
             format = chalk.bold.green;
         }
-        console.log("[" + showActive(v.active) + "]", format(v.id), "(" + chalk.blue(dtfUS.format(v.created)) + ")");
+        console.log("[" + showActive(v.active) + "]", format(v.id));
+        console.log("    Published: " + chalk.blue(v.created));
+        if (v.description)
+            console.log("    Description: " + chalk.bold(v.description));
         if (v.activeInstances.length > 0) {
-            console.log("     ", chalk.cyan("Deployed Instances"));
+            console.log("   ", chalk.underline.cyan("Deployed Instances"));
             v.activeInstances.forEach((i) => {
-                console.log("       - ", chalk.green(i.name), "[" + chalk.blue(i.id) + "]");
-                console.log("          Launched: ", chalk.blue(i.launchTime));
+                console.log("     - ", chalk.green(i.name)),
+                    console.log("        ID: " + chalk.magenta(i.id));
+                console.log("        Launched: ", chalk.blue(i.launchTime));
             });
         }
     });
 });
-/*
-program.command("delete")
-.arguments("<buildjs>")
-.action(async (build) => {
-
-})
-*/
+program.command("edit")
+    .description("Update an AMI such as promoting to active or edit description")
+    .arguments("<buildjs>")
+    .option('-a, --all', "Delete all even if active or in-use", false)
+    .action(async (build, ops) => {
+    try {
+        const buildPath = path.resolve(build);
+        await Promise.resolve().then(() => __importStar(require(buildPath)));
+        const builds = builder_1.AmiBuildQueue.bootstrap();
+        const ami = await cli_menus.amiList(builds, "Select AMI to edit:");
+        const res = await editui.listAmis(ami.name, ami.region);
+        const op = await editui.editOptions();
+        switch (op) {
+            case types_1.EditOption.Promote:
+                console.log("Promoting: ", res.id);
+                let ptag = new tagger.AmiTagger(res.region, res.name, res.id);
+                await ptag.setTags(true);
+                break;
+            case types_1.EditOption.Description:
+                console.log("Promoting: ", res.id);
+                let tag = new tagger.AmiTagger(res.region, res.name, res.id);
+                break;
+        }
+    }
+    catch (err) {
+        console.log("Error: ", err);
+        process.exit(1);
+    }
+});
 program.command("prune")
     .description("Remove all in-active AMI's. Will not remove if an AMI is in-use. Use -a/--all flag to delete all")
     .arguments("<buildjs>")

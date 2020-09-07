@@ -1,44 +1,26 @@
 import {AWSClient, clientFactory} from '../aws/client'
 import EC2 from 'aws-sdk/clients/ec2'
-import {Filter,
+import {
+    Filter,
     Image,
     Instance,
     DescribeInstancesResult,
     ReservationList,
-    Reservation
+    Reservation,
     } from 'aws-sdk/clients/ec2'
 import {
-    Regions
+    Regions,
+    AmiBuildImage,
+    AmiDate,
+    Tag as AmiTag,
+    AmiActiveInstances,
+    AmiBuildImageInspect,
 } from '../types'
 
 const VERSION = require('../../package.json').version
 const BUILDER = require('../../package.json').name
 
-export interface AmiTag {
-    key: string
-    value: string
-}
-
-export interface AmiBuildImage {
-    id: string
-    name: string
-    region: Regions
-    active: boolean
-    tags: AmiTag[],
-    created: Date
-}
-
-
-export interface AmiActiveInstances {
-    id: string
-    name: string,
-    launchTime: string,
-}
-
-export interface AmiBuildImageInspect extends AmiBuildImage {
-    activeInstances: AmiActiveInstances[]
-}
-
+interface EC2Tag extends EC2.Tag {}
 
 class AmiBase {
 
@@ -108,38 +90,57 @@ export class AmiTagger extends AmiBase {
 
     }
 
-    public async setTags(isActive: boolean = false) {
+    private xformTagApi(tag: AmiTag): EC2Tag {
+        return {
+            Key: (tag.key.match(/^user\:/)) ? tag.key:"user:" + tag.key,
+            Value: tag.value
+        }
+    }
 
+    public async setTags(isActive: boolean = true, aCustomTags?: AmiTag[]) {
 
-        await this.removeActiveTags()
+        // default tags
+        let defTags: EC2Tag[] = [
+            {
+                Key: 'Name',
+                Value: this.name
+            },
+            {
+                Key: 'meta:Builder',
+                Value: BUILDER
+            },
+            {
+                Key: 'meta:Version',
+                Value: VERSION
+            },
+            {
+                Key: 'meta:UTCDateTime',
+                Value: new Date().toUTCString()
+            },
+        ]
+
+        // incoming tags
+        let tags: AmiTag[] = aCustomTags ?? []
+
+        // convert to sdk tags
+        tags.forEach((v) => {
+            defTags.push(this.xformTagApi(v))
+        })
+
+        // is active clear existing 
+        // tags and mark this one active
+        if (isActive)
+            await this.removeActiveTags()
+            defTags.push({
+                Key: 'meta:Active',
+                Value: 'true'
+            })
 
         let p = {
             Resources: [
                 this.amiId
             ],
-            Tags: [
-                {
-                    Key: 'Name',
-                    Value: this.name
-                },
-                {
-                    Key: 'meta:Builder',
-                    Value: BUILDER
-                },
-                {
-                    Key: 'meta:Version',
-                    Value: VERSION
-                },
-                {
-                    Key: 'meta:UTCDateTime',
-                    Value: new Date().toUTCString()
-                },
-                {
-                    Key: 'meta:Active',
-                    Value: 'true'
-                },
-                
-            ]
+            Tags: defTags
         }
 
         await this.client.createTags(p).promise()
@@ -195,6 +196,8 @@ export class AmiTagger extends AmiBase {
 
 }
 
+export class AmiTagEdit extends AmiTagger {}
+
 export interface AmiDeleteResult {
     msg: string
     deleted: boolean
@@ -231,26 +234,39 @@ export class AmiList extends AmiBase {
             let id = (img['ImageId']) ? img['ImageId']: ""
             let active = false
             let tags: AmiTag[] = []
-            let created: Date = new Date()
+            let userTags: AmiTag[] = []
+            let created: AmiDate = new AmiDate()
+            let description: string | undefined
 
             if (img.Tags) {
                 img.Tags.forEach((t) => {
                     
-                    let key =  (t.Key) ? t.Key: ""
-                    let value =  (t.Value) ? t.Value: ""
+                    let key = t.Key ?? ""
+                    let value = t.Value ?? ""
 
                     if (key == "meta:Active") {
                         active = true
                     }
 
-                    if (key == "meta:UTCDateTime") {
-                        created = new Date(Date.parse(value))
+                    if (key == "user:description") {
+                        description = value
                     }
 
-                    tags.push({
+                    if (key == "meta:UTCDateTime") {
+                        created = new AmiDate(Date.parse(value))
+                        return
+                    }
+
+                    let _tag = {
                         key,
                         value
-                    })
+                    }
+
+                    tags.push(_tag)
+
+                    if (_tag.key.match(/^user\:/)) {
+                        userTags.push(_tag)
+                    }
 
                 })
             }
@@ -262,7 +278,9 @@ export class AmiList extends AmiBase {
                 tags,
                 created,
                 name: this.name,
-                region: this.region
+                region: this.region,
+                userTags,
+                description
             }
 
             r.push(n)

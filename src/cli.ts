@@ -4,7 +4,6 @@ import {AWSClient} from './aws/client'
 import * as AWS from 'aws-sdk'
 import * as child from 'child_process'
 import * as path from 'path'
-import {Regions, AmiQueuedBuild} from './types'
 import {AmiBuildQueue} from './packer/builder'
 import * as runner from './packer/runner'
 import * as term from 'terminal-kit'
@@ -17,6 +16,17 @@ import * as readline from 'readline'
 import * as os from 'os'
 import * as help_txt from './cli/help'
 import * as buildui from './cli/buildui'
+import * as editui from './cli/editui'
+import * as uitools from './cli/uitools'
+import {
+    Regions,
+    AmiQueuedBuild,
+    AmiBuildImage,
+    ShortDateFormat,
+    AmiBuildRunnerProps,
+    EditOption,
+} from './types'
+
 
 const chalk = require("chalk")
 
@@ -47,7 +57,7 @@ program.command("list")
 	let p = path.resolve(path.normalize(cmd))
 
 	import(p).then(async (res) => {
-		let t: tagger.AmiBuildImage[] = []
+		let t: AmiBuildImage[] = []
 		let builds = AmiBuildQueue.bootstrap()
 		for (var i in builds) {
 			let b = builds[i]
@@ -70,13 +80,21 @@ program.command("list")
 program.command('test')
 .action(async () => {
 
+    let a = EditOption.Promote
+    console.log(EditOption)
+
 })
 
 program.command('build')
 .arguments("<buildjs> [names...]")
 .option('-y, --yes', "Bypass yes confirmation", false)
+.option('-n, --no', "Do no promote AMI to active status", false)
 .option('-g, --generate-only', "Only generate assets and skip building", false)
+.option('-d, --description <description>', "A description to store with instance. (Quote string w/space) (200 char limit)")
 .option('-a, --activate', "Set build(s) as active")
+.on("options:note", (n: string) => {
+    console.log("NOTE: ", n)
+})
 .action(async (cmd, names, ops) => {
 
 	// flags
@@ -85,6 +103,7 @@ program.command('build')
 	var nobuild = (ops.no_build) ? true: false
     var buildQueue: AmiQueuedBuild[] = []
     var buildsInProgress: Array<runner.AmiBuildRunner> = []
+    var promoteActive = !ops.no
 
 	let p = path.resolve(path.normalize(cmd))
 
@@ -132,11 +151,19 @@ program.command('build')
     if (buildQueue.length > 0) {
 
         buildQueue.forEach(async (v) => {
-            let t = await v.packerAmi.generate(v.region)
-            let b = new runner.AmiBuildRunner(t, {
+            let packerBuild = await v.packerAmi.generate(v.region)
+
+            let buildProps: AmiBuildRunnerProps = {
                 isActive: true,
-                isStarted: true
-            })
+                isStarted: true,
+                promoteActive
+            }
+
+            if (typeof ops.description === "string") {
+                buildProps.description = ops.description
+            }
+
+            let b = new runner.AmiBuildRunner(packerBuild, buildProps)
             buildsInProgress.push(b)
             if (!ops.generateOnly)
                 b.execute()
@@ -150,11 +177,11 @@ program.command('build')
 
     }
 
-    buildui.clearTerminal()
+    uitools.clearTerminal()
     console.log("Builds are starting....")
 
     process.stdout.on('resize', function () {
-        buildui.clearTerminal()
+        uitools.clearTerminal()
     })
 
     setInterval(() => {
@@ -209,7 +236,6 @@ program.command("inspect")
 		return (a)? chalk.green("✔"): chalk.red("✘")
 	}
 	const hr = () => console.log("----------------")
-	const dtfUS = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',minute: '2-digit', second: '2-digit' });
 
 
 
@@ -224,34 +250,66 @@ program.command("inspect")
 		if (v.active) {
 			format = chalk.bold.green
 		}
-		console.log("[" + showActive(v.active) + "]",
-					format(v.id),
-					"(" + chalk.blue(dtfUS.format(v.created)) + ")")
-					if (v.activeInstances.length > 0) {
-						console.log("     ", chalk.cyan("Deployed Instances"))
-						v.activeInstances.forEach((i) => {
-							console.log("       - ",
-										chalk.green(i.name),
-										"[" + chalk.blue(i.id) + "]"
-									   )
-                            console.log("          Launched: ",
-                                        chalk.blue(i.launchTime)
-                                       )
+		console.log("[" + showActive(v.active) + "]", format(v.id))
+        console.log("    Published: " + chalk.blue(v.created))
+        if (v.description)
+            console.log("    Description: " + chalk.bold(v.description))
+        if (v.activeInstances.length > 0) {
+            console.log("   ", chalk.underline.cyan("Deployed Instances"))
+            v.activeInstances.forEach((i) => {
+                console.log("     - ",
+                            chalk.green(i.name)),
+                console.log("        ID: " + chalk.magenta(i.id))
+                console.log("        Launched: ",
+                            chalk.blue(i.launchTime))
 
-						})
-					}
+            })
+        }
 
 	})
 
 })
 
-/*
-program.command("delete")
+program.command("edit")
+.description("Update an AMI such as promoting to active or edit description")
 .arguments("<buildjs>")
-.action(async (build) => {
+.option('-a, --all', "Delete all even if active or in-use", false)
+.action(async (build, ops) => {
+    try {
+
+        const buildPath = path.resolve(build)
+        await import(buildPath)
+        const builds = AmiBuildQueue.bootstrap()
+
+        const ami = await cli_menus.amiList(builds, "Select AMI to edit:")
+
+        const res = await editui.listAmis(ami.name, ami.region)
+
+        const op = await editui.editOptions()
+
+        switch(op) {
+            case EditOption.Promote:
+                console.log("Promoting: ", res.id)
+                let ptag = new tagger.AmiTagger(res.region,
+                                            res.name,
+                                                res.id)
+                await ptag.setTags(true)
+                break
+            case EditOption.Description:
+                console.log("Promoting: ", res.id)
+                let tag = new tagger.AmiTagger(res.region,
+                                            res.name,
+                                                res.id)
+                break
+        }
+
+    } catch(err) {
+        console.log("Error: ", err)
+        process.exit(1)
+    }
 
 })
-*/
+
 
 program.command("prune")
 .description("Remove all in-active AMI's. Will not remove if an AMI is in-use. Use -a/--all flag to delete all")

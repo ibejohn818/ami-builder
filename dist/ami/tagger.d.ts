@@ -1,25 +1,5 @@
 import EC2 from 'aws-sdk/clients/ec2';
-import { Regions } from '../types';
-export interface AmiTag {
-    key: string;
-    value: string;
-}
-export interface AmiBuildImage {
-    id: string;
-    name: string;
-    region: Regions;
-    active: boolean;
-    tags: AmiTag[];
-    created: Date;
-}
-export interface AmiActiveInstances {
-    id: string;
-    name: string;
-    launchTime: string;
-}
-export interface AmiBuildImageInspect extends AmiBuildImage {
-    activeInstances: AmiActiveInstances[];
-}
+import { Regions, AmiBuildImage, Tag as AmiTag, AmiBuildImageInspect } from '../types';
 declare class AmiBase {
     protected _client?: EC2;
     protected region: Regions;
@@ -39,8 +19,11 @@ export declare class AmiTagger extends AmiBase {
     constructor(aRegion: Regions, aName: string, aAmiId: string);
     private getAllAmis;
     private removeActiveTags;
-    setTags(isActive?: boolean): Promise<void>;
+    private xformTagApi;
+    setTags(isActive?: boolean, aCustomTags?: AmiTag[]): Promise<void>;
     delete(): Promise<AmiDeleteResult>;
+}
+export declare class AmiTagEdit extends AmiTagger {
 }
 export interface AmiDeleteResult {
     msg: string;

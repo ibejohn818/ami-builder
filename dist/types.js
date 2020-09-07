@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Provisioner = exports.IPackerAmi = exports.Regions = void 0;
+exports.Provisioner = exports.AmiDate = exports.ShortDateFormat = exports.IPackerBuild = exports.IPackerAmi = exports.EditOption = exports.Regions = void 0;
 var Regions;
 (function (Regions) {
     Regions["USWEST1"] = "us-west-1";
@@ -8,6 +8,12 @@ var Regions;
     Regions["USEAST1"] = "us-east-1";
     Regions["USEAST2"] = "us-east-2";
 })(Regions = exports.Regions || (exports.Regions = {}));
+var EditOption;
+(function (EditOption) {
+    EditOption[EditOption["None"] = 0] = "None";
+    EditOption[EditOption["Promote"] = 1] = "Promote";
+    EditOption[EditOption["Description"] = 2] = "Description";
+})(EditOption = exports.EditOption || (exports.EditOption = {}));
 /**
 * Interface of a the PackerAmi instance that generates
 * the packer file and it's build assets
@@ -15,6 +21,16 @@ var Regions;
 class IPackerAmi {
 }
 exports.IPackerAmi = IPackerAmi;
+class IPackerBuild {
+}
+exports.IPackerBuild = IPackerBuild;
+exports.ShortDateFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+class AmiDate extends Date {
+    prettyDate() {
+        return exports.ShortDateFormat.format(this);
+    }
+}
+exports.AmiDate = AmiDate;
 /*
  * Packer provisioner implementation
  */

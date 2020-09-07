@@ -189,6 +189,7 @@ packer.AmiBuildQueue.add(web2[0]);
 packer.AmiBuildQueue.add(webPython);
 packer.AmiBuildQueue.add(bastionNat);
 packer.AmiBuildQueue.add(ubu20);
+packer.AmiBuildQueue.add(baseAmi("BaseAmi")[0]);
 //packer.AmiBuildQueue.add(ubuntuAmi("Docker")[0])
 //packer.AmiBuildQueue.add(ubuntuAmi("StagingDocker")[0])
 packer.AmiBuildQueue.setRegions(types_1.Regions.USWEST2, types_1.Regions.USWEST1);

@@ -16,14 +16,14 @@ import {
     PackerAmiBuild,
     AmiQueuedBuild,
     IPackerAmi,
+    IPackerBuild,
 } from '../types'
 
-
-export class PackerAmi implements IPackerAmi {
+export class PackerBuild implements IPackerBuild {
 
     private _name: string
+    protected sshUser: string
     protected provisioners: Array<PackerAmiProvisioner> = []
-    private sshUser: string
     protected path: string = path.normalize(path.join("./", "__packer__"))
     protected packerJson: PackerFileJson = {
         builders: [],
@@ -36,17 +36,23 @@ export class PackerAmi implements IPackerAmi {
         this.sshUser = aSshUser
     }
 
+    public get name(): string {
+        return this._name.replace(" ", "") 
+    }
+
+    private validateName(aName: string) {
+
+    }
+
     public async getAmiId(region: Regions): Promise<string> {
         throw Error("Not Implemented")
         return "Not Implemented"
     }
 
-    private validateName(aName: string) {
+    public generate(region: Regions, path?: string): Promise<PackerAmiBuild> {
+        throw Error("Must implement generate")
     }
 
-    public get name(): string {
-        return this._name.replace(" ", "") 
-    }
     /**
      * Add a provisioner to the AMI
      */
@@ -74,6 +80,21 @@ export class PackerAmi implements IPackerAmi {
 
         return aProv
     }
+}
+
+
+export class PackerAmi extends PackerBuild {
+
+
+    constructor(aName: string, aSshUser: string) {
+        super(aName, aSshUser)
+    }
+
+    public async getAmiId(region: Regions): Promise<string> {
+        throw Error("Not Implemented")
+        return "Not Implemented"
+    }
+
 
     public prependProvisioner(aProv: Provisioner): Provisioner {
 

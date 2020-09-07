@@ -5,6 +5,7 @@ import { AmiTagger } from '../ami/tagger'
 import {
     PackerAmiBuild,
     AmiBuildRunnerProps,
+    Tag as AmiTag,
 } from '../types'
 
 class Logger {
@@ -172,12 +173,24 @@ export class AmiBuildRunner {
 
             this._newAmiId = `${res[5]}${res[6]}${res[7]}`
 
+            let tags: AmiTag[] = []
+
+            if (this.props.description) {
+                tags.push({
+                    key: "user:description",
+                    value: this.props.description
+                })
+            }
             let tagger = new AmiTagger(
                 this._task.region,
                 this._task.name,
                 this._newAmiId
             )
-            await tagger.setTags()
+
+            await tagger.setTags(
+                this.props.promoteActive,
+                tags
+            )
             this.idFound = true
         }
     }

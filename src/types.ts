@@ -7,6 +7,21 @@ export enum Regions {
     USEAST2 = "us-east-2"
 }
 
+export enum EditOption {
+    None,
+    Promote,
+    Description
+}
+
+export interface PackerBuildProps {
+    sshUser: string,
+    path?: string
+}
+
+export interface PackerAmiBuildProps  extends PackerBuildProps {
+    instanceType?: string
+}
+
 export interface PackerAmiProvisionerAsset {
     path: string
 }
@@ -67,11 +82,50 @@ export interface PackerAmiBuild {
 
 }
 
+export interface AwsActiveSdkInstance {
+    id: string
+    name: string,
+    launchTime: string,
+}
+
+export interface AmiActiveInstances extends AwsActiveSdkInstance {}
+
+
+export interface AmiBuildImage {
+    id: string
+    name: string
+    region: Regions
+    active: boolean
+    tags: Tag[],
+    userTags?: Tag[],
+    created: AmiDate
+    description?: string
+}
+
+
+
+export interface AmiBuildImageInspect extends AmiBuildImage {
+    activeInstances: AmiActiveInstances[]
+}
+
 /**
 * Interface of a the PackerAmi instance that generates
 * the packer file and it's build assets
 */ 
 export abstract class IPackerAmi {
+    /**
+     *  Method for an AMI to get its default AMI ID to use
+     *  as the base for the build.
+     * @param region 
+     */
+    abstract getAmiId(region: Regions): Promise<string>
+
+    /**
+     * Generate build assets
+     */
+    abstract generate(region: Regions, path?: string): Promise<PackerAmiBuild>
+}
+export abstract class IPackerBuild {
     /**
      *  Method for an AMI to get its default AMI ID to use
      *  as the base for the build.
@@ -93,16 +147,25 @@ export interface AmiQueuedBuild {
 
 export interface AmiBuildRunnerProps {
     verbose?: boolean
-    markAmiActive?: boolean
+    promoteActive?: boolean
     isActive?: boolean
     isStarted?: boolean
     currentLogLine?: string
     logLine?: string
     logTarget?: string
     logType?: string
+    description?: string
 }
 
 export type PlaybookTaskBlock = {[key: string]: any}
+
+export const ShortDateFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',minute: '2-digit', second: '2-digit' });
+
+export class AmiDate extends Date {
+    public prettyDate(): string {
+        return ShortDateFormat.format(this)
+    }
+}
 
 /*
  * Packer provisioner implementation
@@ -142,3 +205,4 @@ export abstract class Provisioner {
     abstract generate_asset(index: number,region: Regions, path: string): Promise<{[key: string]: any}>
 
 }
+

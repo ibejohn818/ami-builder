@@ -19,13 +19,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.Ubuntu20Ami = exports.AmazonLinuxAmi = exports.AmazonLinux2Ami = exports.PackerAmi = void 0;
+exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.Ubuntu20Ami = exports.AmazonLinuxAmi = exports.AmazonLinux2Ami = exports.PackerAmi = exports.PackerBuild = void 0;
 const prov = __importStar(require("./provisioners"));
 const ami_module = __importStar(require("../ami/ami"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const vpc = __importStar(require("../aws/vpc"));
-class PackerAmi {
+class PackerBuild {
     constructor(aName, aSshUser) {
         this.provisioners = [];
         this.path = path.normalize(path.join("./", "__packer__"));
@@ -37,14 +37,17 @@ class PackerAmi {
         this._name = aName;
         this.sshUser = aSshUser;
     }
+    get name() {
+        return this._name.replace(" ", "");
+    }
+    validateName(aName) {
+    }
     async getAmiId(region) {
         throw Error("Not Implemented");
         return "Not Implemented";
     }
-    validateName(aName) {
-    }
-    get name() {
-        return this._name.replace(" ", "");
+    generate(region, path) {
+        throw Error("Must implement generate");
     }
     /**
      * Add a provisioner to the AMI
@@ -68,6 +71,16 @@ class PackerAmi {
             provisioner: aProv
         });
         return aProv;
+    }
+}
+exports.PackerBuild = PackerBuild;
+class PackerAmi extends PackerBuild {
+    constructor(aName, aSshUser) {
+        super(aName, aSshUser);
+    }
+    async getAmiId(region) {
+        throw Error("Not Implemented");
+        return "Not Implemented";
     }
     prependProvisioner(aProv) {
         for (var i in this.provisioners) {

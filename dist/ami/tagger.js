@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiList = exports.AmiTagger = void 0;
+exports.AmiList = exports.AmiTagEdit = exports.AmiTagger = void 0;
 const client_1 = require("../aws/client");
+const types_1 = require("../types");
 const VERSION = require('../../package.json').version;
 const BUILDER = require('../../package.json').name;
 class AmiBase {
@@ -51,34 +52,51 @@ class AmiTagger extends AmiBase {
             }).promise();
         }
     }
-    async setTags(isActive = false) {
-        await this.removeActiveTags();
+    xformTagApi(tag) {
+        return {
+            Key: (tag.key.match(/^user\:/)) ? tag.key : "user:" + tag.key,
+            Value: tag.value
+        };
+    }
+    async setTags(isActive = true, aCustomTags) {
+        // default tags
+        let defTags = [
+            {
+                Key: 'Name',
+                Value: this.name
+            },
+            {
+                Key: 'meta:Builder',
+                Value: BUILDER
+            },
+            {
+                Key: 'meta:Version',
+                Value: VERSION
+            },
+            {
+                Key: 'meta:UTCDateTime',
+                Value: new Date().toUTCString()
+            },
+        ];
+        // incoming tags
+        let tags = aCustomTags !== null && aCustomTags !== void 0 ? aCustomTags : [];
+        // convert to sdk tags
+        tags.forEach((v) => {
+            defTags.push(this.xformTagApi(v));
+        });
+        // is active clear existing 
+        // tags and mark this one active
+        if (isActive)
+            await this.removeActiveTags();
+        defTags.push({
+            Key: 'meta:Active',
+            Value: 'true'
+        });
         let p = {
             Resources: [
                 this.amiId
             ],
-            Tags: [
-                {
-                    Key: 'Name',
-                    Value: this.name
-                },
-                {
-                    Key: 'meta:Builder',
-                    Value: BUILDER
-                },
-                {
-                    Key: 'meta:Version',
-                    Value: VERSION
-                },
-                {
-                    Key: 'meta:UTCDateTime',
-                    Value: new Date().toUTCString()
-                },
-                {
-                    Key: 'meta:Active',
-                    Value: 'true'
-                },
-            ]
+            Tags: defTags
         };
         await this.client.createTags(p).promise();
     }
@@ -120,6 +138,9 @@ class AmiTagger extends AmiBase {
     }
 }
 exports.AmiTagger = AmiTagger;
+class AmiTagEdit extends AmiTagger {
+}
+exports.AmiTagEdit = AmiTagEdit;
 class AmiList extends AmiBase {
     constructor(aName, aRegion) {
         super(aName, aRegion);
@@ -143,21 +164,32 @@ class AmiList extends AmiBase {
             let id = (img['ImageId']) ? img['ImageId'] : "";
             let active = false;
             let tags = [];
-            let created = new Date();
+            let userTags = [];
+            let created = new types_1.AmiDate();
+            let description;
             if (img.Tags) {
                 img.Tags.forEach((t) => {
-                    let key = (t.Key) ? t.Key : "";
-                    let value = (t.Value) ? t.Value : "";
+                    var _a, _b;
+                    let key = (_a = t.Key) !== null && _a !== void 0 ? _a : "";
+                    let value = (_b = t.Value) !== null && _b !== void 0 ? _b : "";
                     if (key == "meta:Active") {
                         active = true;
                     }
-                    if (key == "meta:UTCDateTime") {
-                        created = new Date(Date.parse(value));
+                    if (key == "user:description") {
+                        description = value;
                     }
-                    tags.push({
+                    if (key == "meta:UTCDateTime") {
+                        created = new types_1.AmiDate(Date.parse(value));
+                        return;
+                    }
+                    let _tag = {
                         key,
                         value
-                    });
+                    };
+                    tags.push(_tag);
+                    if (_tag.key.match(/^user\:/)) {
+                        userTags.push(_tag);
+                    }
                 });
             }
             let n = {
@@ -166,7 +198,9 @@ class AmiList extends AmiBase {
                 tags,
                 created,
                 name: this.name,
-                region: this.region
+                region: this.region,
+                userTags,
+                description
             };
             r.push(n);
         });

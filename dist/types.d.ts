@@ -5,6 +5,18 @@ export declare enum Regions {
     USEAST1 = "us-east-1",
     USEAST2 = "us-east-2"
 }
+export declare enum EditOption {
+    None = 0,
+    Promote = 1,
+    Description = 2
+}
+export interface PackerBuildProps {
+    sshUser: string;
+    path?: string;
+}
+export interface PackerAmiBuildProps extends PackerBuildProps {
+    instanceType?: string;
+}
 export interface PackerAmiProvisionerAsset {
     path: string;
 }
@@ -58,11 +70,43 @@ export interface PackerAmiBuild {
     path: string;
     tags?: Tag[];
 }
+export interface AwsActiveSdkInstance {
+    id: string;
+    name: string;
+    launchTime: string;
+}
+export interface AmiActiveInstances extends AwsActiveSdkInstance {
+}
+export interface AmiBuildImage {
+    id: string;
+    name: string;
+    region: Regions;
+    active: boolean;
+    tags: Tag[];
+    userTags?: Tag[];
+    created: AmiDate;
+    description?: string;
+}
+export interface AmiBuildImageInspect extends AmiBuildImage {
+    activeInstances: AmiActiveInstances[];
+}
 /**
 * Interface of a the PackerAmi instance that generates
 * the packer file and it's build assets
 */
 export declare abstract class IPackerAmi {
+    /**
+     *  Method for an AMI to get its default AMI ID to use
+     *  as the base for the build.
+     * @param region
+     */
+    abstract getAmiId(region: Regions): Promise<string>;
+    /**
+     * Generate build assets
+     */
+    abstract generate(region: Regions, path?: string): Promise<PackerAmiBuild>;
+}
+export declare abstract class IPackerBuild {
     /**
      *  Method for an AMI to get its default AMI ID to use
      *  as the base for the build.
@@ -81,17 +125,22 @@ export interface AmiQueuedBuild {
 }
 export interface AmiBuildRunnerProps {
     verbose?: boolean;
-    markAmiActive?: boolean;
+    promoteActive?: boolean;
     isActive?: boolean;
     isStarted?: boolean;
     currentLogLine?: string;
     logLine?: string;
     logTarget?: string;
     logType?: string;
+    description?: string;
 }
 export declare type PlaybookTaskBlock = {
     [key: string]: any;
 };
+export declare const ShortDateFormat: Intl.DateTimeFormat;
+export declare class AmiDate extends Date {
+    prettyDate(): string;
+}
 export declare abstract class Provisioner {
     protected _name: string;
     protected _provisionerType: string;
