@@ -70,8 +70,27 @@ program.command("list")
 });
 program.command('test')
     .action(async () => {
-    let a = types_1.EditOption.Promote;
-    console.log(types_1.EditOption);
+    let b = {
+        name: "BaseAmi",
+        region: types_1.Regions.USWEST2,
+        packerFile: "asdfasdfasdfasdf",
+        path: "/Users/jhardy/projects/nodejs/ami-builder/__packer__/BaseAmi"
+    };
+    let p = {
+        promoteActive: true
+    };
+    let s = "artifact,0,id,us-west-2:ami-0ae2f79d9efa4dc5a";
+    let t = new runner.AmiBuildRunner(b, p);
+    //let res = await t.parseAmiId(s) 
+    /*
+    //let p = '/Users/jhardy/projects/nodejs/ami-builder/__packer__/WebPython3/WebPython3-us-west-1.log'
+    let p = '/Uasafasdsers/jhardy/projects/nodejs/ami-builder/__packer__/WebPython3/WebPython3-us-west-1.log'
+    let res = await fs.statSync(p)
+    console.log(res)
+    let bd = res.birthtime
+    console.log(utils.dateForFilename(new Date(bd)))
+    let e = utils.splitFileExt(p)
+     */
 });
 program.command('build')
     .arguments("<buildjs> [names...]")
@@ -102,7 +121,11 @@ program.command('build')
     }
     // gather the builds in queue
     let builds = builder_1.AmiBuildQueue.bootstrap();
-    // build storage
+    // display any options of interest
+    console.log(chalk.bold.green("Active: "), uitools.showActive(!ops.no), "(Will be published as", ((ops.no) ? "In-Active" : "Active") + ")");
+    if (typeof ops.description == "string") {
+        console.log(chalk.bold("Description: "), ops.description);
+    }
     // check if we have a fuzzy search
     if (names.length > 0) {
         buildQueue = cli_menus.fuzzyFilter(builds, names);

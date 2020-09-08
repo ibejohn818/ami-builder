@@ -10,9 +10,18 @@ export declare enum EditOption {
     Promote = 1,
     Description = 2
 }
+export interface FileExtSplit {
+    filename: string;
+    ext: string;
+}
 export interface PackerBuildProps {
     sshUser: string;
     path?: string;
+    debug?: boolean;
+}
+export interface PackerBuildVar {
+    key: string;
+    value: string;
 }
 export interface PackerAmiBuildProps extends PackerBuildProps {
     instanceType?: string;
@@ -144,6 +153,7 @@ export declare class AmiDate extends Date {
 export declare abstract class Provisioner {
     protected _name: string;
     protected _provisionerType: string;
+    protected _packerVars: PackerBuildVar[];
     constructor(aName: string, aProvisionerType: string);
     get provisionerType(): string;
     get name(): string;

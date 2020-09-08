@@ -1,6 +1,7 @@
 import * as cp from 'child_process'
 import * as builder from './builder'
 import * as fs from 'fs'
+import * as utils from '../utils'
 import { AmiTagger } from '../ami/tagger'
 import {
     PackerAmiBuild,
@@ -10,29 +11,47 @@ import {
 
 class Logger {
 
-    private logHandle: fs.WriteStream
+    private logHandle?: fs.WriteStream
     private _build: PackerAmiBuild
+    private _logCreated: boolean = false
 
     constructor(aBuild: PackerAmiBuild) {
         this._build = aBuild
+    }
+
+    private createStream () {
         this.logHandle = fs.createWriteStream(
             `${this._build.path}/${this.genFileName()}`,
             {
                 flags: 'a'
             }
         )
-    }
-    private genFileName(): string {
-       let name = `${this._build.name}-${this._build.region}.log` 
-       return name
+        this._logCreated = true
     }
 
-    public write(data: string) {
-        this.logHandle.write(data)
+    private genFileName(): string {
+        let ts = new Date().getTime()/1000
+        let name = `${this._build.name}-${this._build.region}-${ts}.log` 
+        return name
+    }
+
+    public write(data: string, from?: string) {
+        if (!this.logHandle) {
+            this.createStream()
+        }
+
+        if (this.logHandle) {
+            let d = new Date().toISOString()
+            let p = `[${d}]` + ((from) ? ` (${from}) `:"")
+            data = data.replace(/\n$/, '')
+            this.logHandle.write(p + data + "\n")
+        }
+
     }
 
     public close() {
-        this.logHandle.end()
+        if (this.logHandle)
+            this.logHandle.end()
     }
 
 }
@@ -53,14 +72,20 @@ export class AmiBuildRunner {
     private msgData: string = ""
     private msgTarget: string = ""
     private msgType: string = ""
+    private _logger: Logger
 
     constructor(task: PackerAmiBuild, props?: AmiBuildRunnerProps) {
         this._task = task
         this._props = props ?? {}
+        this._logger = new Logger(this._task)
     }
 
     public get props(): AmiBuildRunnerProps {
         return this._props
+    }
+
+    public get logger(): Logger {
+        return this._logger
     }
 
     public get task(): PackerAmiBuild {
@@ -84,14 +109,13 @@ export class AmiBuildRunner {
             AmiBuildRunner.packerExtraOps)
         let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `
         let proc = cp.spawn(cmd, args, {shell: true})
-        let log = new Logger(this._task)
 
         this.props.isStarted = true
         this.props.isActive = true
 
         proc.stdout.on('data', (data) => {
             let line = `${data}`
-            log.write(line)
+            this.logger.write(line, "Packer")
             this.parseLine(line)
             line = line.replace(/\n$/, '')
             this._props.currentLogLine = line
@@ -99,13 +123,13 @@ export class AmiBuildRunner {
         })
 
         proc.on('disconnect', () => {
-            log.close()
+            this.logger.close()
             proc.kill()
         })
 
-        proc.on('exit', () => {
+        proc.on('exit', (code) => {
             this.props.isActive = false
-            log.close()
+            this.logger.close()
         })
 
         this._proc = proc
@@ -165,33 +189,61 @@ export class AmiBuildRunner {
         }
 
         let re = new RegExp(/(.*?)([a-z]{2}-[a-z]{1,}-[0-9]{1})(:)(\s?)(ami)(-)([a-z0-9]{5,})$/, 'mi')
-        if (re.test(data)) {
+
+        if (re.test(data) && this._newAmiId == undefined) {
+
             let res: RegExpMatchArray | null = data.match(re)
+
             if (res === null) {
                 return
             }
 
             this._newAmiId = `${res[5]}${res[6]}${res[7]}`
 
-            let tags: AmiTag[] = []
-
-            if (this.props.description) {
-                tags.push({
-                    key: "user:description",
-                    value: this.props.description
-                })
-            }
-            let tagger = new AmiTagger(
-                this._task.region,
-                this._task.name,
-                this._newAmiId
-            )
-
-            await tagger.setTags(
-                this.props.promoteActive,
-                tags
-            )
             this.idFound = true
+
+            await this.tagAmi()
+
+        }
+    }
+
+    private _taggingAttemps = 0
+
+    private async tagAmi() {
+
+        if (this._newAmiId) {
+            try {
+
+                let tags: AmiTag[] = []
+
+                if (this.props.description) {
+                    tags.push({
+                        key: "user:description",
+                        value: this.props.description
+                    })
+                }
+                let tagger = new AmiTagger(
+                    this._task.region,
+                    this._task.name,
+                    this._newAmiId
+                )
+
+                let res = await tagger.setTags(
+                    this.props.promoteActive,
+                    tags
+                )
+
+                this.logger.write(`Tagging ${this._taggingAttemps} result: ${res}`)
+
+            } catch (err) {
+                if (this._taggingAttemps > 5) {
+                    throw err
+                }
+                this._taggingAttemps++
+                let msg = `Tagging error attempt: ${this._taggingAttemps}: ${err.toString()}`
+                this.logger.write(msg, "AmiRunner::Tagging")
+                await this.tagAmi()
+            }
         }
     }
     

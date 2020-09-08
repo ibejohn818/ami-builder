@@ -30,6 +30,10 @@ exports.listAmis = async (name, region) => {
     let ls = new tagger.AmiList(name, region);
     let c = [];
     let res = await ls.inspectAmiList();
+    if (res.length <= 0) {
+        console.log("No ami's are published");
+        process.exit(0);
+    }
     res.forEach((v) => {
         let ln = `${uitools.showActive(v.active)} - ${chalk.green(v.id)}`;
         ln += `\n   - Published: ${chalk.blue(v.created)}`;

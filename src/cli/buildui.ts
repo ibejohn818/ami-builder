@@ -8,7 +8,8 @@ import {
 import {
     hr,
     chunkString,
-    clearTerminal
+    clearTerminal,
+    drawFooter,
 } from './uitools'
 
 const chalk = require("chalk")
@@ -44,9 +45,7 @@ export const drawBuildInterval = (builds: AmiBuildRunner[]) => {
         out = out.concat(drawAmiLine(v, cols))
     })
 
-    out.push(hr(cols, "#"))
-    out.push(version.padEnd(cols, "#"))
-    out.push(hr(cols, "#"))
+    out = out.concat(drawFooter())
 
     // content height
     let ch = out.length

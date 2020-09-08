@@ -13,9 +13,20 @@ export enum EditOption {
     Description
 }
 
+export interface FileExtSplit {
+    filename: string
+    ext: string
+}
+
 export interface PackerBuildProps {
     sshUser: string,
     path?: string
+    debug?: boolean
+}
+
+export interface PackerBuildVar {
+    key: string
+    value: string
 }
 
 export interface PackerAmiBuildProps  extends PackerBuildProps {
@@ -174,6 +185,7 @@ export abstract class Provisioner {
 
     protected _name: string
     protected _provisionerType: string
+    protected _packerVars: PackerBuildVar[] = []
 
     constructor(aName: string, aProvisionerType: string) {
         this._name = aName

@@ -31,6 +31,11 @@ export const listAmis = async (name: string, region: Regions): Promise<AmiBuildI
 
     let res = await ls.inspectAmiList()
 
+    if (res.length <= 0) {
+        console.log("No ami's are published")
+        process.exit(0)
+    }
+
     res.forEach((v) => {
         let ln = `${uitools.showActive(v.active)} - ${chalk.green(v.id)}`
         ln += `\n   - Published: ${chalk.blue(v.created)}`
@@ -78,3 +83,4 @@ export const editOptions = async (): Promise<EditOption> => {
 
     return a['op']
 }
+

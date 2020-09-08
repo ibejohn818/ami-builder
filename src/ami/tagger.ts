@@ -1,4 +1,5 @@
 import {AWSClient, clientFactory} from '../aws/client'
+import * as AWS from 'aws-sdk'
 import EC2 from 'aws-sdk/clients/ec2'
 import {
     Filter,
@@ -97,7 +98,7 @@ export class AmiTagger extends AmiBase {
         }
     }
 
-    public async setTags(isActive: boolean = true, aCustomTags?: AmiTag[]) {
+    public async setTags(isActive: boolean = true, aCustomTags?: AmiTag[]): Promise<boolean> {
 
         // default tags
         let defTags: EC2Tag[] = [
@@ -143,7 +144,11 @@ export class AmiTagger extends AmiBase {
             Tags: defTags
         }
 
-        await this.client.createTags(p).promise()
+        let res = await this.client.createTags(p).promise()
+        if (res) {
+            return true
+        }
+        return false
     }
 
     public async delete(): Promise<AmiDeleteResult> {

@@ -44,3 +44,5 @@ tryit.*
 /tags.lock
 venv
 dist/tryit.*
+src/_dev.ts
+dist/_dev.*

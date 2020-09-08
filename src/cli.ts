@@ -4,6 +4,7 @@ import {AWSClient} from './aws/client'
 import * as AWS from 'aws-sdk'
 import * as child from 'child_process'
 import * as path from 'path'
+import * as fs from 'fs'
 import {AmiBuildQueue} from './packer/builder'
 import * as runner from './packer/runner'
 import * as term from 'terminal-kit'
@@ -18,6 +19,7 @@ import * as help_txt from './cli/help'
 import * as buildui from './cli/buildui'
 import * as editui from './cli/editui'
 import * as uitools from './cli/uitools'
+import * as utils from './utils'
 import {
     Regions,
     AmiQueuedBuild,
@@ -80,9 +82,30 @@ program.command("list")
 program.command('test')
 .action(async () => {
 
-    let a = EditOption.Promote
-    console.log(EditOption)
+    let b = {
+        name: "BaseAmi",
+        region: Regions.USWEST2,
+        packerFile: "asdfasdfasdfasdf",
+        path: "/Users/jhardy/projects/nodejs/ami-builder/__packer__/BaseAmi"
+    }
+    let p = {
+        promoteActive: true
+    }
+    let s = "artifact,0,id,us-west-2:ami-0ae2f79d9efa4dc5a"
 
+    let t = new runner.AmiBuildRunner(b, p)
+    
+    //let res = await t.parseAmiId(s) 
+
+    /*
+    //let p = '/Users/jhardy/projects/nodejs/ami-builder/__packer__/WebPython3/WebPython3-us-west-1.log'
+    let p = '/Uasafasdsers/jhardy/projects/nodejs/ami-builder/__packer__/WebPython3/WebPython3-us-west-1.log'
+    let res = await fs.statSync(p)
+    console.log(res)
+    let bd = res.birthtime
+    console.log(utils.dateForFilename(new Date(bd)))
+    let e = utils.splitFileExt(p)
+     */
 })
 
 program.command('build')
@@ -118,7 +141,20 @@ program.command('build')
     // gather the builds in queue
     let builds = AmiBuildQueue.bootstrap()
 
-    // build storage
+    // display any options of interest
+
+    console.log(
+        chalk.bold.green("Active: "),
+        uitools.showActive(!ops.no),
+        "(Will be published as",
+        ((ops.no) ? "In-Active":"Active") + ")",
+    )
+    if (typeof ops.description == "string") {
+        console.log(
+            chalk.bold("Description: "),
+            ops.description
+        )
+    }
 
     // check if we have a fuzzy search
     if (names.length > 0) {

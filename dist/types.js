@@ -36,6 +36,7 @@ exports.AmiDate = AmiDate;
  */
 class Provisioner {
     constructor(aName, aProvisionerType) {
+        this._packerVars = [];
         this._name = aName;
         this._provisionerType = aProvisionerType;
     }

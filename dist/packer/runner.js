@@ -25,20 +25,34 @@ const fs = __importStar(require("fs"));
 const tagger_1 = require("../ami/tagger");
 class Logger {
     constructor(aBuild) {
+        this._logCreated = false;
         this._build = aBuild;
+    }
+    createStream() {
         this.logHandle = fs.createWriteStream(`${this._build.path}/${this.genFileName()}`, {
             flags: 'a'
         });
+        this._logCreated = true;
     }
     genFileName() {
-        let name = `${this._build.name}-${this._build.region}.log`;
+        let ts = new Date().getTime() / 1000;
+        let name = `${this._build.name}-${this._build.region}-${ts}.log`;
         return name;
     }
-    write(data) {
-        this.logHandle.write(data);
+    write(data, from) {
+        if (!this.logHandle) {
+            this.createStream();
+        }
+        if (this.logHandle) {
+            let d = new Date().toISOString();
+            let p = `[${d}]` + ((from) ? ` (${from}) ` : "");
+            data = data.replace(/\n$/, '');
+            this.logHandle.write(p + data + "\n");
+        }
     }
     close() {
-        this.logHandle.end();
+        if (this.logHandle)
+            this.logHandle.end();
     }
 }
 class AmiBuildRunner {
@@ -48,11 +62,16 @@ class AmiBuildRunner {
         this.msgData = "";
         this.msgTarget = "";
         this.msgType = "";
+        this._taggingAttemps = 0;
         this._task = task;
         this._props = props !== null && props !== void 0 ? props : {};
+        this._logger = new Logger(this._task);
     }
     get props() {
         return this._props;
+    }
+    get logger() {
+        return this._logger;
     }
     get task() {
         return this._task;
@@ -71,24 +90,23 @@ class AmiBuildRunner {
         let args = AmiBuildRunner.packerOps.concat(AmiBuildRunner.packerExtraOps);
         let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `;
         let proc = cp.spawn(cmd, args, { shell: true });
-        let log = new Logger(this._task);
         this.props.isStarted = true;
         this.props.isActive = true;
         proc.stdout.on('data', (data) => {
             let line = `${data}`;
-            log.write(line);
+            this.logger.write(line, "Packer");
             this.parseLine(line);
             line = line.replace(/\n$/, '');
             this._props.currentLogLine = line;
             //console.log(line)
         });
         proc.on('disconnect', () => {
-            log.close();
+            this.logger.close();
             proc.kill();
         });
-        proc.on('exit', () => {
+        proc.on('exit', (code) => {
             this.props.isActive = false;
-            log.close();
+            this.logger.close();
         });
         this._proc = proc;
     }
@@ -132,22 +150,39 @@ class AmiBuildRunner {
             return;
         }
         let re = new RegExp(/(.*?)([a-z]{2}-[a-z]{1,}-[0-9]{1})(:)(\s?)(ami)(-)([a-z0-9]{5,})$/, 'mi');
-        if (re.test(data)) {
+        if (re.test(data) && this._newAmiId == undefined) {
             let res = data.match(re);
             if (res === null) {
                 return;
             }
             this._newAmiId = `${res[5]}${res[6]}${res[7]}`;
-            let tags = [];
-            if (this.props.description) {
-                tags.push({
-                    key: "user:description",
-                    value: this.props.description
-                });
-            }
-            let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, this._newAmiId);
-            await tagger.setTags(this.props.promoteActive, tags);
             this.idFound = true;
+            await this.tagAmi();
+        }
+    }
+    async tagAmi() {
+        if (this._newAmiId) {
+            try {
+                let tags = [];
+                if (this.props.description) {
+                    tags.push({
+                        key: "user:description",
+                        value: this.props.description
+                    });
+                }
+                let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, this._newAmiId);
+                let res = await tagger.setTags(this.props.promoteActive, tags);
+                this.logger.write(`Tagging ${this._taggingAttemps} result: ${res}`);
+            }
+            catch (err) {
+                if (this._taggingAttemps > 5) {
+                    throw err;
+                }
+                this._taggingAttemps++;
+                let msg = `Tagging error attempt: ${this._taggingAttemps}: ${err.toString()}`;
+                this.logger.write(msg, "AmiRunner::Tagging");
+                await this.tagAmi();
+            }
         }
     }
 }

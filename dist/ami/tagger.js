@@ -98,7 +98,11 @@ class AmiTagger extends AmiBase {
             ],
             Tags: defTags
         };
-        await this.client.createTags(p).promise();
+        let res = await this.client.createTags(p).promise();
+        if (res) {
+            return true;
+        }
+        return false;
     }
     async delete() {
         let res = {

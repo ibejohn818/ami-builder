@@ -1,4 +1,14 @@
 import { PackerAmiBuild, AmiBuildRunnerProps } from '../types';
+declare class Logger {
+    private logHandle?;
+    private _build;
+    private _logCreated;
+    constructor(aBuild: PackerAmiBuild);
+    private createStream;
+    private genFileName;
+    write(data: string, from?: string): void;
+    close(): void;
+}
 export declare class AmiBuildRunner {
     static packerExe: string;
     static packerOps: string[];
@@ -11,8 +21,10 @@ export declare class AmiBuildRunner {
     private msgData;
     private msgTarget;
     private msgType;
+    private _logger;
     constructor(task: PackerAmiBuild, props?: AmiBuildRunnerProps);
     get props(): AmiBuildRunnerProps;
+    get logger(): Logger;
     get task(): PackerAmiBuild;
     get newAmiId(): string | undefined;
     get consoleAmiLink(): string;
@@ -26,4 +38,7 @@ export declare class AmiBuildRunner {
     private parseSay;
     private parseMessage;
     private parseAmiId;
+    private _taggingAttemps;
+    private tagAmi;
 }
+export {};

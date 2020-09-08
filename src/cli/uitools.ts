@@ -1,5 +1,10 @@
 const chalk = require("chalk")
 
+const SO = process.stdout
+const ROWS = SO.rows
+const COLS = SO.columns
+const VERSION = require('../../package.json').version
+
 export const hr = (length: number, char: string = "-"): string => {
     return "".padEnd(length, char)
 }
@@ -14,10 +19,19 @@ export const showActive = (a: boolean) => {
 }
 
 export const clearTerminal = () => {
-    let so = process.stdout;
-    let rows = so.rows;
-    for (var i=0; i<rows; i++) {
-        so.write("\n");
+    for (var i=0; i<ROWS; i++) {
+        SO.write("\n");
     }
 }
 
+
+export const drawFooter = (): string[] => {
+
+    let out = []
+    let version = " AMI Builder " + VERSION + " ////"
+
+    out.push(hr(COLS, "/"))
+    out.push(version.padStart(COLS, "/"))
+
+    return out
+}

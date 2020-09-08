@@ -26,9 +26,7 @@ exports.drawBuildInterval = (builds) => {
     builds.forEach((v) => {
         out = out.concat(drawAmiLine(v, cols));
     });
-    out.push(uitools_1.hr(cols, "#"));
-    out.push(version.padEnd(cols, "#"));
-    out.push(uitools_1.hr(cols, "#"));
+    out = out.concat(uitools_1.drawFooter());
     // content height
     let ch = out.length;
     // figure out size from bottom

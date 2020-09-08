@@ -20,7 +20,7 @@ export declare class AmiTagger extends AmiBase {
     private getAllAmis;
     private removeActiveTags;
     private xformTagApi;
-    setTags(isActive?: boolean, aCustomTags?: AmiTag[]): Promise<void>;
+    setTags(isActive?: boolean, aCustomTags?: AmiTag[]): Promise<boolean>;
     delete(): Promise<AmiDeleteResult>;
 }
 export declare class AmiTagEdit extends AmiTagger {
