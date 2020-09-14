@@ -174,7 +174,6 @@ program.command('build')
         let completed = true;
         buildsInProgress.forEach((v) => {
             if (v.props.isActive || !v.props.isTagged) {
-                console.log("RUNNING: ", v.task.name);
                 completed = false;
             }
         });
