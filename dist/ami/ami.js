@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultUbuntu20 = exports.defaultUbuntu18 = exports.defaultUbuntu16 = exports.defaultUbuntu14 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
 const client_1 = require("../aws/client");
 class AmiFilter {
     /**

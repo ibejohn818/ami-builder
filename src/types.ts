@@ -160,6 +160,7 @@ export interface AmiBuildRunnerProps {
     verbose?: boolean
     promoteActive?: boolean
     isActive?: boolean
+    isTagged?: boolean
     isStarted?: boolean
     currentLogLine?: string
     logLine?: string

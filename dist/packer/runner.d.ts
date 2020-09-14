@@ -22,11 +22,13 @@ export declare class AmiBuildRunner {
     private msgTarget;
     private msgType;
     private _logger;
+    private _isTagging;
     constructor(task: PackerAmiBuild, props?: AmiBuildRunnerProps);
     get props(): AmiBuildRunnerProps;
     get logger(): Logger;
     get task(): PackerAmiBuild;
     get newAmiId(): string | undefined;
+    get isTagging(): boolean;
     get consoleAmiLink(): string;
     execute(): Promise<void>;
     /**
@@ -39,6 +41,6 @@ export declare class AmiBuildRunner {
     private parseMessage;
     private parseAmiId;
     private _taggingAttemps;
-    private tagAmi;
+    tagAmi(): Promise<void>;
 }
 export {};

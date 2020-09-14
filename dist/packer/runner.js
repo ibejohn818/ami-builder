@@ -1,25 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiBuildRunner = void 0;
 const cp = __importStar(require("child_process"));
 const fs = __importStar(require("fs"));
 const tagger_1 = require("../ami/tagger");
@@ -62,6 +49,7 @@ class AmiBuildRunner {
         this.msgData = "";
         this.msgTarget = "";
         this.msgType = "";
+        this._isTagging = false;
         this._taggingAttemps = 0;
         this._task = task;
         this._props = props !== null && props !== void 0 ? props : {};
@@ -79,6 +67,9 @@ class AmiBuildRunner {
     get newAmiId() {
         return this._newAmiId;
     }
+    get isTagging() {
+        return this._isTagging;
+    }
     get consoleAmiLink() {
         // https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=owned-by-me;search=ami-07badf6f66dacbc7a;sort=name
         let uri = `https://${this.task.region}.console.aws.amazon.com`;
@@ -87,9 +78,10 @@ class AmiBuildRunner {
         return uri;
     }
     async execute() {
-        let args = AmiBuildRunner.packerOps.concat(AmiBuildRunner.packerExtraOps);
-        let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `;
-        let proc = cp.spawn(cmd, args, { shell: true });
+        var args = AmiBuildRunner.packerOps.concat(AmiBuildRunner.packerExtraOps);
+        var cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `;
+        var proc = cp.spawn(cmd, args, { shell: true });
+        var $this = this;
         this.props.isStarted = true;
         this.props.isActive = true;
         proc.stdout.on('data', (data) => {
@@ -105,6 +97,9 @@ class AmiBuildRunner {
             proc.kill();
         });
         proc.on('exit', (code) => {
+            this.tagAmi().then((res) => {
+                $this._props.isTagged = true;
+            });
             this.props.isActive = false;
             this.logger.close();
         });
@@ -157,12 +152,14 @@ class AmiBuildRunner {
             }
             this._newAmiId = `${res[5]}${res[6]}${res[7]}`;
             this.idFound = true;
-            await this.tagAmi();
         }
     }
     async tagAmi() {
         if (this._newAmiId) {
             try {
+                var $this = this;
+                this._isTagging = true;
+                this._props.currentLogLine = `Tagging AMI: ${this._newAmiId}. Attempts: ${this._taggingAttemps}`;
                 let tags = [];
                 if (this.props.description) {
                     tags.push({
@@ -171,8 +168,8 @@ class AmiBuildRunner {
                     });
                 }
                 let tagger = new tagger_1.AmiTagger(this._task.region, this._task.name, this._newAmiId);
-                let res = await tagger.setTags(this.props.promoteActive, tags);
-                this.logger.write(`Tagging ${this._taggingAttemps} result: ${res}`);
+                await tagger.setTags(this.props.promoteActive, tags);
+                //this.logger.write(`Tagging ${this._taggingAttemps}`)
             }
             catch (err) {
                 if (this._taggingAttemps > 5) {
@@ -180,9 +177,12 @@ class AmiBuildRunner {
                 }
                 this._taggingAttemps++;
                 let msg = `Tagging error attempt: ${this._taggingAttemps}: ${err.toString()}`;
-                this.logger.write(msg, "AmiRunner::Tagging");
+                //this.logger.write(msg, "AmiRunner::Tagging")
                 await this.tagAmi();
             }
+        }
+        else {
+            throw Error("Attemping to tag ami without ami-id");
         }
     }
 }

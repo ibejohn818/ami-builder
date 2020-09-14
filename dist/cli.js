@@ -1,22 +1,10 @@
 #!/usr/bin/env node
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -156,7 +144,8 @@ program.command('build')
             let buildProps = {
                 isActive: true,
                 isStarted: true,
-                promoteActive
+                isTagged: false,
+                promoteActive,
             };
             if (typeof ops.description === "string") {
                 buildProps.description = ops.description;
@@ -184,7 +173,8 @@ program.command('build')
         buildui.drawBuildInterval(buildsInProgress);
         let completed = true;
         buildsInProgress.forEach((v) => {
-            if (v.props.isActive) {
+            if (v.props.isActive || !v.props.isTagged) {
+                console.log("RUNNING: ", v.task.name);
                 completed = false;
             }
         });

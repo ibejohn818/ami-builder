@@ -73,6 +73,7 @@ export class AmiBuildRunner {
     private msgTarget: string = ""
     private msgType: string = ""
     private _logger: Logger
+    private _isTagging: boolean = false
 
     constructor(task: PackerAmiBuild, props?: AmiBuildRunnerProps) {
         this._task = task
@@ -96,6 +97,10 @@ export class AmiBuildRunner {
         return this._newAmiId
     }
 
+    public get isTagging(): boolean {
+        return this._isTagging
+    }
+
     public get consoleAmiLink(): string {
         // https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=owned-by-me;search=ami-07badf6f66dacbc7a;sort=name
         let uri = `https://${this.task.region}.console.aws.amazon.com`
@@ -105,10 +110,11 @@ export class AmiBuildRunner {
     }
     public async execute() {
 
-        let args = AmiBuildRunner.packerOps.concat(
+        var args = AmiBuildRunner.packerOps.concat(
             AmiBuildRunner.packerExtraOps)
-        let cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `
-        let proc = cp.spawn(cmd, args, {shell: true})
+        var cmd = `${AmiBuildRunner.packerExe} build ${this._task.packerFile} `
+        var proc = cp.spawn(cmd, args, {shell: true})
+        var $this = this
 
         this.props.isStarted = true
         this.props.isActive = true
@@ -128,6 +134,9 @@ export class AmiBuildRunner {
         })
 
         proc.on('exit', (code) => {
+            this.tagAmi().then((res) => {
+                $this._props.isTagged = true
+            })
             this.props.isActive = false
             this.logger.close()
         })
@@ -202,18 +211,18 @@ export class AmiBuildRunner {
 
             this.idFound = true
 
-            await this.tagAmi()
-
         }
     }
 
     private _taggingAttemps = 0
 
-    private async tagAmi() {
+    public async tagAmi(): Promise<void> {
 
         if (this._newAmiId) {
             try {
-
+                var $this = this
+                this._isTagging = true
+                this._props.currentLogLine = `Tagging AMI: ${this._newAmiId}. Attempts: ${this._taggingAttemps}`
                 let tags: AmiTag[] = []
 
                 if (this.props.description) {
@@ -228,12 +237,12 @@ export class AmiBuildRunner {
                     this._newAmiId
                 )
 
-                let res = await tagger.setTags(
+                await tagger.setTags(
                     this.props.promoteActive,
                     tags
                 )
 
-                this.logger.write(`Tagging ${this._taggingAttemps} result: ${res}`)
+                //this.logger.write(`Tagging ${this._taggingAttemps}`)
 
             } catch (err) {
                 if (this._taggingAttemps > 5) {
@@ -241,9 +250,11 @@ export class AmiBuildRunner {
                 }
                 this._taggingAttemps++
                 let msg = `Tagging error attempt: ${this._taggingAttemps}: ${err.toString()}`
-                this.logger.write(msg, "AmiRunner::Tagging")
+                //this.logger.write(msg, "AmiRunner::Tagging")
                 await this.tagAmi()
             }
+        } else {
+            throw Error("Attemping to tag ami without ami-id")
         }
     }
     
