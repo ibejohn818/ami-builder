@@ -1,12 +1,9 @@
 const chalk = require("chalk")
 
-const SO = process.stdout
-const ROWS = SO.rows
-const COLS = SO.columns
 const VERSION = require('../../package.json').version
 
 export const hr = (length: number, char: string = "-"): string => {
-    return "".padEnd(length, char)
+  return "".padEnd(length, char)
 }
 
 export const chunkString = (str: string, length: number): string[] => {
@@ -15,23 +12,30 @@ export const chunkString = (str: string, length: number): string[] => {
 }
 
 export const showActive = (a: boolean) => {
-    return (a)? chalk.green("✔"): chalk.red("✘")
+  return (a)? chalk.green("✔"): chalk.red("✘")
 }
 
 export const clearTerminal = () => {
-    for (var i=0; i<ROWS; i++) {
-        SO.write("\n");
-    }
+  const SO = process.stdout
+  const ROWS = SO.rows
+
+  for (var i=0; i<ROWS; i++) {
+    SO.write("\n");
+  }
 }
 
 
 export const drawFooter = (): string[] => {
 
-    let out = []
-    let version = " AMI Builder " + VERSION + " ////"
+  const SO = process.stdout
+  const ROWS = SO.rows
+  const COLS = SO.columns
 
-    out.push(hr(COLS, "/"))
-    out.push(version.padStart(COLS, "/"))
+  let out = []
+  let version = " AMI Builder " + VERSION + " ////"
 
-    return out
+  out.push(hr(COLS, "/"))
+  out.push(version.padStart(COLS, "/"))
+
+  return out
 }

@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chalk = require("chalk");
-const SO = process.stdout;
-const ROWS = SO.rows;
-const COLS = SO.columns;
 const VERSION = require('../../package.json').version;
 exports.hr = (length, char = "-") => {
     return "".padEnd(length, char);
@@ -16,11 +13,16 @@ exports.showActive = (a) => {
     return (a) ? chalk.green("✔") : chalk.red("✘");
 };
 exports.clearTerminal = () => {
+    const SO = process.stdout;
+    const ROWS = SO.rows;
     for (var i = 0; i < ROWS; i++) {
         SO.write("\n");
     }
 };
 exports.drawFooter = () => {
+    const SO = process.stdout;
+    const ROWS = SO.rows;
+    const COLS = SO.columns;
     let out = [];
     let version = " AMI Builder " + VERSION + " ////";
     out.push(exports.hr(COLS, "/"));
