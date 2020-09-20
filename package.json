@@ -1,6 +1,6 @@
 {
   "name": "ami-builder",
-  "version": "0.0.1-beta.37",
+  "version": "0.0.1-beta.38",
   "description": "SDK to define & deploy EC2 AMI's using typescript for use with AWS CDK. Leverages Hashicorp packer.",
   "main": "dist/",
   "files": [
