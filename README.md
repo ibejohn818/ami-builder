@@ -92,13 +92,6 @@ ami_builder.AmiBuildQueue.setRegions(
 // you then run the `ami-builder build {PATH TO COMPILED JAVASCRIPT}` to build the AMI's
 
 ```
-## Packer and ansible files generated
-![Alternate image text](examples/img/generated-files.png)
-![Alternate image text](examples/img/packer-file.png)
-![Alternate image text](examples/img/ansible-playbook.png)
-
-
-
 ## Example to get active images for CDK
 
 ```typescript
@@ -110,6 +103,14 @@ let amis = await ami_builder.AmiMapper.map("AmiName",
                                             ami_builder.Regions.USEAST2)
 ec2.MachineImage.genericLinux(amis) 
 ```
+
+## Packer and ansible files generated
+![Alternate image text](examples/img/generated-files.png)
+![Alternate image text](examples/img/packer-file.png)
+![Alternate image text](examples/img/ansible-playbook.png)
+
+
+
 
 
 ## TODO
