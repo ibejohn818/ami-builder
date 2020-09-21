@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.drawFooter = exports.clearTerminal = exports.showActive = exports.chunkString = exports.hr = void 0;
 const chalk = require("chalk");
 const VERSION = require('../../package.json').version;
 exports.hr = (length, char = "-") => {

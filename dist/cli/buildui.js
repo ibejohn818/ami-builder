@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.drawBuildInterval = void 0;
 const uitools_1 = require("./uitools");
 const chalk = require("chalk");
 const VERSION = require("../../package.json").version;
