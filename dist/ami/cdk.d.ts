@@ -1,7 +1,5 @@
 import { Regions } from '../types';
-export interface AmiMap {
-    [key: string]: string;
-}
+import { AmiMap } from '../types';
 export declare class AmiMapper {
     static cache: {
         [key: string]: AmiMap;

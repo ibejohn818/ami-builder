@@ -164,3 +164,6 @@ export declare abstract class Provisioner {
         [key: string]: any;
     }>;
 }
+export interface AmiMap {
+    [key: string]: string;
+}

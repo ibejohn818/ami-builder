@@ -2,13 +2,13 @@ import {AWSClient} from '../aws/client'
 import {Regions} from '../types'
 import {Filter} from 'aws-sdk/clients/ec2'
 import EC2 from 'aws-sdk/clients/ec2'
+import {
+    AmiMap
+} from '../types'
 
 const VERSION = require('../../package.json').version
 const BUILDER = require('../../package.json').name
 
-export interface AmiMap {
-    [key: string]: string
-}
 export class AmiMapper {
 
     public static cache: {[key: string]: AmiMap} = {}
