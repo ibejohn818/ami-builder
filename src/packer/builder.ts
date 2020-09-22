@@ -82,7 +82,6 @@ export class PackerBuild implements IPackerBuild {
     }
 }
 
-
 export class PackerAmi extends PackerBuild {
 
 
@@ -231,13 +230,21 @@ export class PackerAmi extends PackerBuild {
 
 
         let shell = new prov.ShellProvisioner("Ansible Installer")
-        shell.add([
-            "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
-            "sudo amazon-linux-extras install epel -y",
-            "sudo yum install -y git gcc make python-setuptools lib-tool",
-            "sudo easy_install pip",
-            "sudo pip install ansible",
-        ])
+        if (this.constructor.name.match(/ubuntu/i)) {
+            shell.add([
+                "sudo apt-add-repository ppa:ansible/ansible -y",
+                "sudo apt-get update",
+                "sudo apt-get install ansible -y",
+            ])
+        } else {
+            shell.add([
+                "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
+                "sudo amazon-linux-extras install epel -y",
+                "sudo yum install -y git gcc make python-setuptools lib-tool",
+                "sudo easy_install pip",
+                "sudo pip install ansible",
+            ])
+        }
         this.prependProvisioner(shell)
     }
 }

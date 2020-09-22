@@ -134,7 +134,7 @@ const bastionNatInstance = (name) => {
     return ami;
 };
 const ubuntu20 = (name) => {
-    let ami = new packer.Ubuntu20Ami(name);
+    let ami = new packer.Ubuntu18Ami(name);
     let ans = new packer.AnsibleProvisioner("Ansible", path.join(os.homedir(), "projects/ansible"));
     ami.addProvisioner(1, ans);
     ans.addRole({
