@@ -123,26 +123,21 @@ class AmiBuildRunner {
      * Spec: https://packer.io/docs/commands/index.html
      */
     parseLine(lineIn) {
-        try {
-            let out = "";
-            const l = lineIn.split(",");
-            const ts = l[0];
-            const target = l[1].trim();
-            const type = l[2].trim();
-            const data = l.splice(3, (l.length - 1)).join(" ").trim();
-            this._props.logTarget = target;
-            this._props.logLine = this.formatPackerData(data);
-            this._props.logType = type;
-            switch (target) {
-                case "amazon-ebs":
-                    this.parseAmiId(data);
-                    break;
-            }
-            return out;
-
-        } catch (err) {
-            console.log("ERROR PARSING LINE: ", err)
+        let out = "";
+        const l = lineIn.split(",");
+        const ts = l[0];
+        const target = l[1].trim();
+        const type = l[2].trim();
+        const data = l.splice(3, (l.length - 1)).join(" ").trim();
+        this._props.logTarget = target;
+        this._props.logLine = this.formatPackerData(data);
+        this._props.logType = type;
+        switch (target) {
+            case "amazon-ebs":
+                this.parseAmiId(data);
+                break;
         }
+        return out;
     }
     formatPackerData(data) {
         data = data.replace("%!(PACKER_COMMA)", ",");

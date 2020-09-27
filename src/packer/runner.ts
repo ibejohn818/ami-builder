@@ -153,21 +153,27 @@ export class AmiBuildRunner {
 
         let out = ""
 
-        const l = lineIn.split(",")
-        const ts = l[0]
-        const target = l[1].trim()
-        const type = l[2].trim()
-        const data = l.splice(3, (l.length - 1)).join(" ").trim()
-        this._props.logTarget = target
-        this._props.logLine = this.formatPackerData(data)
-        this._props.logType = type
+        try {
 
-        switch (target) {
+            const l = lineIn.split(",")
+            const ts = l[0]
+            const target = l[1].trim()
+            const type = l[2].trim()
+            const data = l.splice(3, (l.length - 1)).join(" ").trim()
+            this._props.logTarget = target
+            this._props.logLine = this.formatPackerData(data)
+            this._props.logType = type
 
-            case "amazon-ebs":
-                this.parseAmiId(data)
-            break;
+            switch (target) {
 
+                case "amazon-ebs":
+                    this.parseAmiId(data)
+                break;
+
+            }
+
+        } catch (err) {
+            console.error("ParseLine Error: ", err)
         }
 
         return out
