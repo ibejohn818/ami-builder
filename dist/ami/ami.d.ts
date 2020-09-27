@@ -11,6 +11,7 @@ export declare class AmiFilter {
      * We will also sort the result list by creation date desc (IE: latest on top)
      */
     static filterImages(region: Regions, filter?: Array<Filter>): Promise<Array<Image>>;
+    static getAmiById(region: Regions, id: string): Promise<Array<Image>>;
 }
 export declare const defaultAwsLinux2Ami: (region: Regions) => Promise<string>;
 export declare const defaultAwsLinuxAmi: (region: Regions) => Promise<string>;

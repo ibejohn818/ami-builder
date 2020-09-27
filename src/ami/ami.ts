@@ -37,6 +37,27 @@ export class AmiFilter {
         return images
 
     }
+
+    public static async  getAmiById(region: Regions, id: string): Promise<Array<Image>>{
+
+        const ec2 = <AWS.EC2>AWSClient.client("EC2", {region: region})
+        let params = {
+            ImageIds: [
+                id
+            ]
+        }
+
+        let res = await ec2.describeImages(params).promise() 
+
+        let images: Array<Image> = []
+
+        if (res.Images) {
+            images = res.Images
+            images.sort((a:Image, b:Image) => (<string>a.CreationDate > <string>b.CreationDate) ? -1:1)
+        }
+
+        return images
+    }
 }
 
 
@@ -327,6 +348,7 @@ export const defaultUbuntu20 = async (region: Regions): Promise<string> => {
     })
     return <string>img[0].ImageId
 }
+
 
 const VERSION = require('../../package.json').version
 const BUILDER = require('../../package.json').name

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultUbuntu20 = exports.defaultUbuntu18 = exports.defaultUbuntu16 = exports.defaultUbuntu14 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
 const client_1 = require("../aws/client");
 class AmiFilter {
     /**
@@ -11,6 +10,21 @@ class AmiFilter {
         const ec2 = client_1.AWSClient.client("EC2", { region: region });
         let params = {
             Filters: filter
+        };
+        let res = await ec2.describeImages(params).promise();
+        let images = [];
+        if (res.Images) {
+            images = res.Images;
+            images.sort((a, b) => (a.CreationDate > b.CreationDate) ? -1 : 1);
+        }
+        return images;
+    }
+    static async getAmiById(region, id) {
+        const ec2 = client_1.AWSClient.client("EC2", { region: region });
+        let params = {
+            ImageIds: [
+                id
+            ]
         };
         let res = await ec2.describeImages(params).promise();
         let images = [];

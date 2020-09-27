@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiMapper = void 0;
 const client_1 = require("../aws/client");
 const types_1 = require("../types");
 const VERSION = require('../../package.json').version;

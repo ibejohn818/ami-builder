@@ -1,4 +1,4 @@
-import { Regions, PackerAmiProvisioner, PackerFileJson, Provisioner, PackerAmiBuild, AmiQueuedBuild, IPackerBuild } from '../types';
+import { Regions, PackerAmiProvisioner, PackerFileJson, Provisioner, PackerAmiBuild, AmiQueuedBuild, IPackerBuild, AmiIdLookupMap } from '../types';
 export declare class PackerBuild implements IPackerBuild {
     private _name;
     protected sshUser: string;
@@ -41,6 +41,11 @@ export declare class PackerAmi extends PackerBuild {
 }
 export declare class AmazonLinux2Ami extends PackerAmi {
     constructor(aName: string);
+    getAmiId(region: Regions): Promise<string>;
+}
+export declare class PackerAmiByID extends PackerAmi {
+    protected amiLookupMap: AmiIdLookupMap;
+    constructor(amiIdMap: AmiIdLookupMap, amiName: string, sshUserName: string);
     getAmiId(region: Regions): Promise<string>;
 }
 export declare class AmazonLinuxAmi extends PackerAmi {

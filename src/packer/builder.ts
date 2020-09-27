@@ -17,6 +17,7 @@ import {
     AmiQueuedBuild,
     IPackerAmi,
     IPackerBuild,
+    AmiIdLookupMap,
 } from '../types'
 
 export class PackerBuild implements IPackerBuild {
@@ -231,12 +232,14 @@ export class PackerAmi extends PackerBuild {
 
         let shell = new prov.ShellProvisioner("Ansible Installer")
         if (this.constructor.name.match(/ubuntu/i)) {
+            let shell = new prov.ShellProvisioner("Ansible Installer")
             shell.add([
                 "sudo apt-add-repository ppa:ansible/ansible -y",
                 "sudo apt-get update",
                 "sudo apt-get install ansible -y",
             ])
-        } else {
+        } else if (this.constructor.name.match(/amazon/i)) {
+            let shell = new prov.ShellProvisioner("Ansible Installer")
             shell.add([
                 "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
                 "sudo amazon-linux-extras install epel -y",
@@ -245,7 +248,6 @@ export class PackerAmi extends PackerBuild {
                 "sudo pip install ansible",
             ])
         }
-        this.prependProvisioner(shell)
     }
 }
 
@@ -259,6 +261,18 @@ export class AmazonLinux2Ami extends PackerAmi {
         return await ami_module.defaultAwsLinux2Ami(region)
     }
 
+}
+
+export class PackerAmiByID extends PackerAmi {
+    protected amiLookupMap: AmiIdLookupMap
+    constructor(amiIdMap: AmiIdLookupMap, amiName: string, sshUserName: string) {
+        super(amiName, sshUserName)
+        this.amiLookupMap = amiIdMap
+    }
+
+    async getAmiId(region: Regions): Promise<string> {
+        return this.amiLookupMap[region]
+    } 
 }
 
 export class AmazonLinuxAmi extends PackerAmi {

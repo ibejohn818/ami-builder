@@ -1,25 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiBuildRunner = void 0;
 const cp = __importStar(require("child_process"));
 const fs = __importStar(require("fs"));
 const tagger_1 = require("../ami/tagger");
@@ -124,18 +111,23 @@ class AmiBuildRunner {
      */
     parseLine(lineIn) {
         let out = "";
-        const l = lineIn.split(",");
-        const ts = l[0];
-        const target = l[1].trim();
-        const type = l[2].trim();
-        const data = l.splice(3, (l.length - 1)).join(" ").trim();
-        this._props.logTarget = target;
-        this._props.logLine = this.formatPackerData(data);
-        this._props.logType = type;
-        switch (target) {
-            case "amazon-ebs":
-                this.parseAmiId(data);
-                break;
+        try {
+            const l = lineIn.split(",");
+            const ts = l[0];
+            const target = l[1].trim();
+            const type = l[2].trim();
+            const data = l.splice(3, (l.length - 1)).join(" ").trim();
+            this._props.logTarget = target;
+            this._props.logLine = this.formatPackerData(data);
+            this._props.logType = type;
+            switch (target) {
+                case "amazon-ebs":
+                    this.parseAmiId(data);
+                    break;
+            }
+        }
+        catch (err) {
+            console.error("ParseLine Error: ", err);
         }
         return out;
     }

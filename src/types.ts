@@ -222,3 +222,5 @@ export abstract class Provisioner {
 export interface AmiMap {
     [key: string]: string
 }
+
+export type AmiIdLookupMap = Record<string, string>

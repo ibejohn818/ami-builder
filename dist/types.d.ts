@@ -167,3 +167,4 @@ export declare abstract class Provisioner {
 export interface AmiMap {
     [key: string]: string;
 }
+export declare type AmiIdLookupMap = Record<string, string>;
