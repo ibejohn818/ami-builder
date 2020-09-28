@@ -166,7 +166,6 @@ class PackerAmi extends PackerBuild {
         if (!go || hasInstaller) {
             return;
         }
-        let shell = new prov.ShellProvisioner("Ansible Installer");
         if (this.constructor.name.match(/ubuntu/i)) {
             let shell = new prov.ShellProvisioner("Ansible Installer");
             shell.add([
@@ -174,6 +173,7 @@ class PackerAmi extends PackerBuild {
                 "sudo apt-get update",
                 "sudo apt-get install ansible -y",
             ]);
+            this.prependProvisioner(shell);
         }
         else if (this.constructor.name.match(/amazon/i)) {
             let shell = new prov.ShellProvisioner("Ansible Installer");
@@ -184,6 +184,7 @@ class PackerAmi extends PackerBuild {
                 "sudo easy_install pip",
                 "sudo pip install ansible",
             ]);
+            this.prependProvisioner(shell);
         }
     }
 }
