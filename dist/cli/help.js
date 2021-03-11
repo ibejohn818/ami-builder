@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.edit = exports.init = exports.build = void 0;
 exports.build = [
     "",
     "Fuzzy search:",
@@ -22,4 +23,6 @@ exports.build = [
     "Would result in:  ProdWeb us-west-1, StagingWeb us-west-1",
     ""
 ];
+exports.init = [];
+exports.edit = [];
 //# sourceMappingURL=help.js.map

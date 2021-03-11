@@ -242,10 +242,13 @@ export class PackerAmi extends PackerBuild {
             let shell = new prov.ShellProvisioner("Ansible Installer")
             shell.add([
                 "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
-                "sudo amazon-linux-extras install epel -y",
-                "sudo yum install -y git gcc make python-setuptools lib-tool",
-                "sudo easy_install pip",
-                "sudo pip install ansible",
+                "sudo amazon-linux-extras install epel ansible2 -y",
+                //"sudo amazon-linux-extras install epel -y",
+                //"sudo yum install -y git gcc make python-setuptools lib-tool",
+                //"sudo yum install -y ansible-python3 ",
+                //"sudo yum install -y git gcc make python-setuptools lib-tool",
+                //"sudo easy_install pip",
+                //"sudo pip install ansible",
             ])
             this.prependProvisioner(shell)
         }

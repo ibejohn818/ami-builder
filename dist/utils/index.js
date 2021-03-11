@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.splitFileExt = exports.dateForFilename = void 0;
 /**
  * Make a date object filename friendly
  */

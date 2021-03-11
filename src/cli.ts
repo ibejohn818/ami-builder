@@ -373,4 +373,14 @@ program.command("prune")
 
 })
 
+
+program.command("init")
+.description("Init an ami project update")
+.action(async (build, ops) => {
+
+})
+
+
+
+
 program.parse(process.argv)
