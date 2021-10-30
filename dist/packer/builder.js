@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.Ubuntu20Ami = exports.AmazonLinuxAmi = exports.PackerAmiByID = exports.AmazonLinux2Ami = exports.PackerAmi = exports.PackerBuild = void 0;
+exports.AmiBuildQueue = exports.PackerBuilder = exports.Ubuntu14Ami = exports.Ubuntu16Ami = exports.Ubuntu18Ami = exports.Ubuntu20Ami = exports.AmazonLinuxAmi = exports.PackerAmiByID = exports.AmazonLinux2ArmAmi = exports.AmazonLinux2Ami = exports.PackerAmi = exports.PackerBuild = void 0;
 const prov = __importStar(require("./provisioners"));
 const ami_module = __importStar(require("../ami/ami"));
 const path = __importStar(require("path"));
@@ -29,6 +29,8 @@ class PackerBuild {
     constructor(aName, aSshUser) {
         this.provisioners = [];
         this.path = path.normalize(path.join("./", "__packer__"));
+        this.volumeSize = 20;
+        this.volumeType = 'gp2';
         this.packerJson = {
             builders: [],
             provisioners: []
@@ -75,8 +77,10 @@ class PackerBuild {
 }
 exports.PackerBuild = PackerBuild;
 class PackerAmi extends PackerBuild {
-    constructor(aName, aSshUser) {
+    constructor(aName, aSshUser, props = {}) {
         super(aName, aSshUser);
+        this.props = {};
+        this.props = props;
     }
     async getAmiId(region) {
         throw Error("Not Implemented");
@@ -98,16 +102,24 @@ class PackerAmi extends PackerBuild {
         fs.mkdirSync(this.buildPath, { recursive: true });
     }
     async packerBuilder(region) {
+        var _a;
+        var ami;
+        try {
+            ami = await this.getAmiId(region);
+        }
+        catch (err) {
+            throw err;
+        }
         let builder = {
             type: "amazon-ebs",
-            instance_type: "t2.micro",
+            instance_type: (_a = this.props.instanceType) !== null && _a !== void 0 ? _a : "t4g.large",
             communicator: "ssh",
             ssh_pty: "true",
             ssh_username: this.sshUser,
             ami_name: `AMI ${this.name} ${+new Date()}`,
             region: region,
             vpc_id: await vpc.VPC.defaultVpc(region),
-            source_ami: await this.getAmiId(region)
+            source_ami: ami,
         };
         this.packerJson['builders'] = [builder];
     }
@@ -193,6 +205,7 @@ class PackerAmi extends PackerBuild {
             shell.add([
                 "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
                 "sudo amazon-linux-extras install epel ansible2 -y",
+                "sudo yum install libselinux-python -y",
             ]);
             this.prependProvisioner(shell);
         }
@@ -208,6 +221,15 @@ class AmazonLinux2Ami extends PackerAmi {
     }
 }
 exports.AmazonLinux2Ami = AmazonLinux2Ami;
+class AmazonLinux2ArmAmi extends PackerAmi {
+    constructor(aName) {
+        super(aName, "ec2-user");
+    }
+    async getAmiId(region) {
+        return await ami_module.defaultAwsLinux2ArmAmi(region);
+    }
+}
+exports.AmazonLinux2ArmAmi = AmazonLinux2ArmAmi;
 class PackerAmiByID extends PackerAmi {
     constructor(amiIdMap, amiName, sshUserName) {
         super(amiName, sshUserName);

@@ -14,6 +14,7 @@ export declare class AmiFilter {
     static getAmiById(region: Regions, id: string): Promise<Array<Image>>;
 }
 export declare const defaultAwsLinux2Ami: (region: Regions) => Promise<string>;
+export declare const defaultAwsLinux2ArmAmi: (region: Regions) => Promise<string>;
 export declare const defaultAwsLinuxAmi: (region: Regions) => Promise<string>;
 export declare const defaultUbuntu14: (region: Regions) => Promise<string>;
 export declare const defaultUbuntu16: (region: Regions) => Promise<string>;

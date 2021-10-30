@@ -112,6 +112,53 @@ export const defaultAwsLinux2Ami = async (region: Regions): Promise<string> => {
     return <string>res[0].ImageId
 }
 
+export const defaultAwsLinux2ArmAmi = async (region: Regions): Promise<string> => {
+
+    let filter: Filter[] = [
+
+
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        // {
+        //     Name: 'ena-support',
+        //     Values: ['true']
+        // },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'name',
+            Values: ['amzn2-ami*arm64*gp2']
+        },
+        {
+            Name: 'description',
+            Values: ["*Linux 2*"]
+        },
+    ]
+        
+        let res: Image[] = await AmiFilter.filterImages(region, filter)
+        if (res.length <= 0) {
+            throw Error("Unable to find Amazon Linux 2 AMI")
+        }
+
+        return <string>res[0].ImageId
+}
+
 export const defaultAwsLinuxAmi = async (region: Regions): Promise<string> => {
 
     let filter: Filter[] = [

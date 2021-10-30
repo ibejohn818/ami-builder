@@ -26,6 +26,8 @@ export class PackerBuild implements IPackerBuild {
     protected sshUser: string
     protected provisioners: Array<PackerAmiProvisioner> = []
     protected path: string = path.normalize(path.join("./", "__packer__"))
+    protected volumeSize: number = 20
+    protected volumeType: string = 'gp2'
     protected packerJson: PackerFileJson = {
         builders: [],
         provisioners: []
@@ -83,11 +85,18 @@ export class PackerBuild implements IPackerBuild {
     }
 }
 
+export interface PackerAmiProps {
+    instanceType?: string
+}
+
 export class PackerAmi extends PackerBuild {
 
 
-    constructor(aName: string, aSshUser: string) {
+    protected props: PackerAmiProps = {}
+
+    constructor(aName: string, aSshUser: string, props: PackerAmiProps = {}) {
         super(aName, aSshUser)
+        this.props = props
     }
 
     public async getAmiId(region: Regions): Promise<string> {
@@ -119,16 +128,33 @@ export class PackerAmi extends PackerBuild {
 
     public async packerBuilder(region: Regions) {
 
+        var ami: string
+        try {
+            ami = await this.getAmiId(region) 
+        } catch (err) {
+           throw err 
+        }
+
         let builder = {
             type: "amazon-ebs",
-            instance_type: "t2.micro",
+            instance_type: this.props.instanceType ?? "t4g.large",
             communicator: "ssh",
             ssh_pty: "true",
             ssh_username: this.sshUser,
             ami_name: `AMI ${this.name} ${+new Date()}`,
             region: region,
             vpc_id: await vpc.VPC.defaultVpc(region),
-            source_ami: await this.getAmiId(region)
+            source_ami: ami, 
+            /*
+            launch_block_device_mappings: [
+                {
+                    device_name: "/dev/sda1",
+                    encrypted: false,
+                    volume_size: this.volumeSize,
+                    volume_type: this.volumeType,
+                }
+            ],
+            */
         }
 
         this.packerJson['builders'] = [builder]
@@ -243,6 +269,7 @@ export class PackerAmi extends PackerBuild {
             shell.add([
                 "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
                 "sudo amazon-linux-extras install epel ansible2 -y",
+                "sudo yum install libselinux-python -y",
                 //"sudo amazon-linux-extras install epel -y",
                 //"sudo yum install -y git gcc make python-setuptools lib-tool",
                 //"sudo yum install -y ansible-python3 ",
@@ -263,6 +290,19 @@ export class AmazonLinux2Ami extends PackerAmi {
 
     async getAmiId(region: Regions): Promise<string> {
         return await ami_module.defaultAwsLinux2Ami(region)
+    }
+
+}
+
+
+export class AmazonLinux2ArmAmi extends PackerAmi {
+
+    constructor(aName: string) {
+        super(aName, "ec2-user")
+    }
+
+    async getAmiId(region: Regions): Promise<string> {
+        return await ami_module.defaultAwsLinux2ArmAmi(region)
     }
 
 }

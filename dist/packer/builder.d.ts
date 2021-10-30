@@ -4,6 +4,8 @@ export declare class PackerBuild implements IPackerBuild {
     protected sshUser: string;
     protected provisioners: Array<PackerAmiProvisioner>;
     protected path: string;
+    protected volumeSize: number;
+    protected volumeType: string;
     protected packerJson: PackerFileJson;
     constructor(aName: string, aSshUser: string);
     get name(): string;
@@ -15,8 +17,12 @@ export declare class PackerBuild implements IPackerBuild {
      */
     addProvisioner(aIndex: number, aProv: Provisioner): Provisioner;
 }
+export interface PackerAmiProps {
+    instanceType?: string;
+}
 export declare class PackerAmi extends PackerBuild {
-    constructor(aName: string, aSshUser: string);
+    protected props: PackerAmiProps;
+    constructor(aName: string, aSshUser: string, props?: PackerAmiProps);
     getAmiId(region: Regions): Promise<string>;
     prependProvisioner(aProv: Provisioner): Provisioner;
     get buildPath(): string;
@@ -40,6 +46,10 @@ export declare class PackerAmi extends PackerBuild {
     protected addAnsibleInstaller(): void;
 }
 export declare class AmazonLinux2Ami extends PackerAmi {
+    constructor(aName: string);
+    getAmiId(region: Regions): Promise<string>;
+}
+export declare class AmazonLinux2ArmAmi extends PackerAmi {
     constructor(aName: string);
     getAmiId(region: Regions): Promise<string>;
 }

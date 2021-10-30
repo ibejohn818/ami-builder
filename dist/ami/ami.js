@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultUbuntu20 = exports.defaultUbuntu18 = exports.defaultUbuntu16 = exports.defaultUbuntu14 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
+exports.defaultUbuntu20 = exports.defaultUbuntu18 = exports.defaultUbuntu16 = exports.defaultUbuntu14 = exports.defaultAwsLinuxAmi = exports.defaultAwsLinux2ArmAmi = exports.defaultAwsLinux2Ami = exports.AmiFilter = void 0;
 const client_1 = require("../aws/client");
 class AmiFilter {
     /**
@@ -70,6 +70,47 @@ exports.defaultAwsLinux2Ami = async (region) => {
         {
             Name: 'name',
             Values: ['amzn2-ami*x86_64-gp2']
+        },
+        {
+            Name: 'description',
+            Values: ["*Linux 2*"]
+        },
+    ];
+    let res = await AmiFilter.filterImages(region, filter);
+    if (res.length <= 0) {
+        throw Error("Unable to find Amazon Linux 2 AMI");
+    }
+    return res[0].ImageId;
+};
+exports.defaultAwsLinux2ArmAmi = async (region) => {
+    let filter = [
+        {
+            Name: 'root-device-type',
+            Values: ["ebs"]
+        },
+        {
+            Name: 'virtualization-type',
+            Values: ["hvm"]
+        },
+        {
+            Name: 'state',
+            Values: ['available']
+        },
+        // {
+        //     Name: 'ena-support',
+        //     Values: ['true']
+        // },
+        {
+            Name: 'image-type',
+            Values: ['machine']
+        },
+        {
+            Name: 'is-public',
+            Values: ['true']
+        },
+        {
+            Name: 'name',
+            Values: ['amzn2-ami*arm64*gp2']
         },
         {
             Name: 'description',
