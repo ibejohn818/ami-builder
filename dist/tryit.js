@@ -32,7 +32,7 @@ let p = {
 };
 const baseAmi = (name) => {
     let ami = new packer.AmazonLinux2Ami(name);
-    let ans = new packer.AnsibleProvisioner("Ansible", "/Users/jhardy/projects/ansible");
+    let ans = new packer.AnsibleProvisioner("Ansible", "/home/jhardy/projects/ansible");
     ami.addProvisioner(1, ans);
     ans.addRole({
         role: "sudo-nopw",
@@ -190,6 +190,8 @@ packer.AmiBuildQueue.add(webPython);
 packer.AmiBuildQueue.add(bastionNat);
 packer.AmiBuildQueue.add(ubu20);
 packer.AmiBuildQueue.add(baseAmi("BaseAmi")[0]);
+packer.AmiBuildQueue.add(baseAmi("BaseAnother")[0]);
+packer.AmiBuildQueue.add(baseAmi("BaseThree")[0]);
 //packer.AmiBuildQueue.add(ubuntuAmi("Docker")[0])
 //packer.AmiBuildQueue.add(ubuntuAmi("StagingDocker")[0])
 packer.AmiBuildQueue.setRegions(types_1.Regions.USWEST2, types_1.Regions.USWEST1);

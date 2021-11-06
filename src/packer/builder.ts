@@ -137,7 +137,7 @@ export class PackerAmi extends PackerBuild {
 
         let builder = {
             type: "amazon-ebs",
-            instance_type: this.props.instanceType ?? "t4g.large",
+            instance_type: this.props.instanceType ?? "c5.large",
             communicator: "ssh",
             ssh_pty: "true",
             ssh_username: this.sshUser,
@@ -284,8 +284,8 @@ export class PackerAmi extends PackerBuild {
 
 export class AmazonLinux2Ami extends PackerAmi {
 
-    constructor(aName: string) {
-        super(aName, "ec2-user")
+    constructor(aName: string, props: PackerAmiProps = {}) {
+        super(aName, "ec2-user", props)
     }
 
     async getAmiId(region: Regions): Promise<string> {
@@ -297,8 +297,8 @@ export class AmazonLinux2Ami extends PackerAmi {
 
 export class AmazonLinux2ArmAmi extends PackerAmi {
 
-    constructor(aName: string) {
-        super(aName, "ec2-user")
+    constructor(aName: string, props: PackerAmiProps = {}) {
+        super(aName, "ec2-user", props)
     }
 
     async getAmiId(region: Regions): Promise<string> {

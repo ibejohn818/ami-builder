@@ -46,11 +46,11 @@ export declare class PackerAmi extends PackerBuild {
     protected addAnsibleInstaller(): void;
 }
 export declare class AmazonLinux2Ami extends PackerAmi {
-    constructor(aName: string);
+    constructor(aName: string, props?: PackerAmiProps);
     getAmiId(region: Regions): Promise<string>;
 }
 export declare class AmazonLinux2ArmAmi extends PackerAmi {
-    constructor(aName: string);
+    constructor(aName: string, props?: PackerAmiProps);
     getAmiId(region: Regions): Promise<string>;
 }
 export declare class PackerAmiByID extends PackerAmi {
