@@ -120,7 +120,16 @@ class PackerAmi extends PackerBuild {
             region: region,
             vpc_id: await vpc.VPC.defaultVpc(region),
             source_ami: ami,
+            launch_block_device_mappings: [],
         };
+        if (this.props.rootVolPath != null && this.props.rootVolType != null && this.props.rootVolSize != null) {
+            builder.launch_block_device_mappings.push({
+                device_name: this.props.rootVolPath,
+                encrypted: false,
+                volume_size: this.props.rootVolSize,
+                volume_type: this.props.rootVolType,
+            });
+        }
         this.packerJson['builders'] = [builder];
     }
     resetPacker() {
@@ -204,7 +213,10 @@ class PackerAmi extends PackerBuild {
             let shell = new prov.ShellProvisioner("Ansible Installer");
             shell.add([
                 "/bin/echo 'repo_upgrade: none' | sudo tee -a /etc/cloud/cloud.cfg.d/disable-yum.conf",
-                "sudo amazon-linux-extras install epel ansible2 -y",
+                "sudo yum install -y yum-utils epel-release",
+                // "sudo amazon-linux-extras install epel -y",
+                "sudo yum-config-manager --enable epel",
+                "sudo amazon-linux-extras install ansible2 -y",
                 "sudo yum install libselinux-python -y",
             ]);
             this.prependProvisioner(shell);

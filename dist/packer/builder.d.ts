@@ -19,6 +19,9 @@ export declare class PackerBuild implements IPackerBuild {
 }
 export interface PackerAmiProps {
     instanceType?: string;
+    rootVolPath?: string;
+    rootVolType?: string;
+    rootVolSize?: number;
 }
 export declare class PackerAmi extends PackerBuild {
     protected props: PackerAmiProps;
