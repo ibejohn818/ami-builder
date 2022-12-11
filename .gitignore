@@ -47,4 +47,4 @@ dist/tryit.*
 src/_dev.ts
 dist/_dev.*
 .vscode
-dist/tryit.*
+dist/

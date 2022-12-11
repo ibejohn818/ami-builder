@@ -159,6 +159,7 @@ export class PackerAmi extends PackerBuild {
                     encrypted: false,
                     volume_size: this.props.rootVolSize,
                     volume_type: this.props.rootVolType,
+                    delete_on_termination: true,
                 }
 
             )

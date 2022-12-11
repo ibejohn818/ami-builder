@@ -172,7 +172,8 @@ export class AmiBuildRunner {
 
             }
 
-        } catch (err) {
+        } catch (e: unknown) {
+            const err: Error = e as Error
             console.error("ParseLine Error: ", err)
         }
 
@@ -250,7 +251,8 @@ export class AmiBuildRunner {
 
                 //this.logger.write(`Tagging ${this._taggingAttemps}`)
 
-            } catch (err) {
+            } catch (e: unknown) {
+                const err = e as Error
                 if (this._taggingAttemps > 5) {
                     throw err
                 }
