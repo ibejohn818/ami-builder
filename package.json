@@ -37,7 +37,7 @@
     "chai-as-promised": "^7.1.1",
     "install": "^0.13.0",
     "jest": "^25.5.4",
-    "mocha": "^7.2.0",
+    "mocha": "^10.1.0",
     "nunjucks": "^3.2.2",
     "nyc": "^15.1.0",
     "ts-jest": "^25.5.1",
